@@ -1,0 +1,61 @@
+{{#yield-body}}
+<br />
+<div id="login" class="row vcenter">
+    <!-- Remove vcenter to make the container top aligned -->
+
+    <div class="small-12 columns">
+        <div class="row">
+            <div class="small-12 small-centered columns">
+                <img src="/images/Freshly.png" alt="" /> <!-- Replace with the Respective Customer Logo -->
+            </div>
+        </div>
+
+        <form>
+            <div class="row">
+                <div class="small-12 columns">
+                    <label>
+                        Enter PIN
+                        <input type="text" id="txt_pin" placeholder="PIN">
+                    </label>
+                </div>
+
+                <div class="small-12 columns">
+                    <a class="button expanded" id="btn_sign_in">Login</a>
+                </div>
+
+                <div class="small-12 columns">
+                    <a class="#" id="btn_signup">Not Registered - Signup</a>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+{{/yield-body}}
+
+{{#yield-styles}}
+        .log-in-form {
+        border: 1px solid #cacaca;
+        padding: 1rem;
+        border-radius: 3px; }
+
+{{/yield-styles}}
+
+
+{{#yield-scripts}}
+        $('#btn_signup').on('click',function(e){
+        var csvLink = 'get_sign_up';
+        $('#btn_signup').attr('href', csvLink);
+        })
+
+        $('#btn_sign_in').click(function(e){
+        var pin=$.trim($('#txt_pin').val());
+        if(pin==undefined || pin=="")
+        {
+        alert("Please fill box")
+        return
+        }
+        var dash_link = 'check_credential?pin='+ pin;
+        $('#btn_sign_in').attr('href', dash_link);
+        })
+{{/yield-scripts}}

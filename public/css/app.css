@@ -1,0 +1,11 @@
+
+img {
+  display: block;
+  margin: 0 auto;
+}
+
+.vcenter {
+position: relative;
+top: 50%;
+transform: translateY(-65%);
+}
