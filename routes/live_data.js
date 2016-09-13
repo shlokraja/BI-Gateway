@@ -7,7 +7,8 @@ var pg = require('pg');
 var async = require('async')
 var config = require('../models/config');
 var conString = config.dbConn
-var mailer=require('../utils/mail_helper')
+var mailer = require('../utils/mail_helper')
+var live_data_model = require('../models/live_data_model')
 
 router.get('/', function (req, res, next) {
     console.log("************************ called")
@@ -24,14 +25,14 @@ router.get('/get_sign_up', function (req, res, next) {
     async.parallel({
         city: function (callback) {
             config.query('select short_name ,name from city',
-              [],
-              function (err, result) {
-                  if (err) {
-                      callback('error running query' + err, null)
-                      return
-                  }
-                  callback(null, result.rows)
-              })
+                [],
+                function (err, result) {
+                    if (err) {
+                        callback('error running query' + err, null)
+                        return
+                    }
+                    callback(null, result.rows)
+                })
         },
 
         restaurant: function (callback) {
@@ -40,30 +41,30 @@ router.get('/get_sign_up', function (req, res, next) {
                         inner join outlet out on out.id=fi.outlet_id \
                         inner join restaurant_config rcon on rcon.restaurant_id=res.id \
                         where res.id>0 order by res.name',
-              [],
-              function (err, result) {
-                  if (err) {
-                      callback('error running query' + err, null)
-                      return
-                  }
-                  callback(null, result.rows)
-              })
+                [],
+                function (err, result) {
+                    if (err) {
+                        callback('error running query' + err, null)
+                        return
+                    }
+                    callback(null, result.rows)
+                })
         }
     },
 
-      function (err, results) {
-          if (err) {
-              console.log('Sign up ' + err)
-              return
-          }
+        function (err, results) {
+            if (err) {
+                console.log('Sign up ' + err)
+                return
+            }
 
-          var context = {
-              title: 'Foodbox',
-              restaurants: results.restaurant,
-              city: results.city
-          }
-          res.render('pages/live_data_signup', context)
-      })
+            var context = {
+                title: 'Foodbox',
+                restaurants: results.restaurant,
+                city: results.city
+            }
+            res.render('pages/live_data_signup', context)
+        })
 });
 
 router.post('/generate_pin', function (req, res) {
@@ -86,23 +87,22 @@ router.post('/generate_pin', function (req, res) {
         }
         client.query('update restaurant_config set mpin=$1 where restaurant_id=$2',
             [mpin, restaurant_id],
-              function (query_err, pin_result) {
-                  done();
-                  if (query_err) {
-                      console.log('error running query' + query_err)
-                      return
-                  }
-                  if (pin_result) {
-                     var mail_content="Please use this pin to login "+mpin
-                     mailer.send_mail("MPIN login details",mail_content,restaurant_email_id,function(err,response){
-                        if(err)
-                        {
-                        res.send('Unknown err occured please try afer some time');
+            function (query_err, pin_result) {
+                done();
+                if (query_err) {
+                    console.log('error running query' + query_err)
+                    return
+                }
+                if (pin_result) {
+                    var mail_content = "Please use this pin to login " + mpin
+                    mailer.send_mail("MPIN login details", mail_content, restaurant_email_id, function (err, response) {
+                        if (err) {
+                            res.send('Unknown err occured please try afer some time');
                         }
                         res.send('Successfully generated and mailed');
-                     })
-                  }
-              })
+                    })
+                }
+            })
     })
 })
 
@@ -118,13 +118,24 @@ router.get('/check_credential', function (req, res) {
         //res.send('Welcome ' + pin_result.rows[0].name);
         if (response) {
             var context = {
-                title: 'Foodbox'
+                title: 'Foodbox',
+                restaurant_id:response.id,
+                restaurant_name:response.name
             }
             console.log("************************ Above render")
             res.render('pages/live_data_dashboard', context);
         }
     })
 });
+
+router.get('/get_volume_plan',function(req,res){
+    var restaurant_id=req.query.restaurant_id;
+
+    //var date=req.query.date;
+    live_data_model.get_session_data(1,function(err,response){
+     res.send(response);
+    })
+})
 
 var check_credentials = function (mpin, callback) {
     pg.connect(conString, function (err, client, done) {
@@ -135,19 +146,21 @@ var check_credentials = function (mpin, callback) {
         client.query('select res.name,res.id,res.short_name from restaurant res \
                 inner join restaurant_config rcon on rcon.restaurant_id=res.id where rcon.mpin=$1',
             [mpin],
-              function (query_err, pin_result) {
-                  done();
-                  if (query_err) {
-                      console.log('error running query' + query_err)
-                      return
-                  }
-                  if (pin_result.rows[0]) {
-                      return callback(null, pin_result.rows)
-                  } else {
-                      return callback(new Error('No data found'))
-                  }
-              })
+            function (query_err, pin_result) {
+                done();
+                if (query_err) {
+                    console.log('error running query' + query_err)
+                    return
+                }
+                if (pin_result.rows[0]) {
+                    return callback(null, pin_result.rows[0])
+                } else {
+                    return callback(new Error('No data found'))
+                }
+            })
     })
 }
+
+
 
 module.exports = router;

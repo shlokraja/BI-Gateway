@@ -1,0 +1,151 @@
+{{#yield-body}}
+<br/>
+<div class="row" id='main_row' data-restaurant_id={{restaurant_id}} data-restaurant_name="{{restaurant_name}}">
+  <div class="small-12 small-centered columns">
+    <img src="images/Freshly.png" alt="" />
+    <!-- Replace with the Respective Customer Logo -->
+  </div>
+</div>
+<br/>
+<div class="row">
+  <div class="small-12 small-centered large-12 large-centered column">
+
+    <ul class="tabs expanded" data-tabs id="example-tabs">
+      <li class="tabs-title is-active"><a id="pnl_volume_plan" href="#panel1" aria-selected="true">Volume Plan</a></li>
+      <li class="tabs-title"><a href="#panel2">Packing</a></li>
+      <li class="tabs-title"><a href="#panel3">Sales Live</a></li>
+      <li class="tabs-title"><a href="#panel4">Sales Summary</a></li>
+    </ul>
+
+    <div class="tabs-content" data-tabs-content="example-tabs">
+      <div class="tabs-panel is-active" id="panel1">
+        <!-- Replace with the Respective Customer Logo -->
+        <button class="button" id="btn_refresh" >Refresh</button>
+        <div id="volume_plan_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+      </div>
+      <div class="tabs-panel" id="panel2">
+        <!-- Replace with the Respective Customer Logo -->
+        <p>Packing - Content</p>
+      </div>
+      <div class="tabs-panel" id="panel3">
+        <!-- Replace with the Respective Customer Logo -->
+
+        <div class="expanded button-group">
+          <a class="button" id="Outletwise">Outletwise</a>
+          <a class="button" id="Productwise">Productwise</a>
+        </div>
+
+      </div>
+      <div class="tabs-panel" id="panel4">
+        <!-- Replace with the Respective Customer Logo -->
+        <p>Sales Summary</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{{/yield-body}} 
+
+{{#yield-styles}}
+
+
+ {{/yield-styles}}
+
+ {{#yield-scripts}}
+
+function sum(numbers) {
+    return _.reduce(numbers, function(result, current) {
+        return result + parseFloat(current);
+    }, 0);
+}
+$('#btn_refresh').click(function(){
+    get_volume_plan_data();
+})
+$(document).ready(function(){
+    get_volume_plan_data();
+});
+
+function get_volume_plan_data()
+{
+var restaurant_id=$('#main_row').attr('data-restaurant_id')
+$.get('get_volume_plan',{'restaurant_id':restaurant_id},  function(data) {
+  
+var sum_of_session = _.chain(data)
+    .groupBy("session")
+    .map(function(value, key) {
+        return {
+            session: key,
+            qty: sum(_.pluck(value, "qty"))
+        }
+    })
+    .value();
+
+var session_data = _.chain(data)
+    .groupBy("session")
+    .map(function(value, key) {
+    var data=[];
+        _.map(value,function(x){
+        var datas=[];
+        datas.push(x.name)
+        datas.push(x.qty)
+         data.push(datas)
+        })
+        return {name:key,id:key,data};
+    })
+    .value();
+
+    draw_chart(sum_of_session,session_data)
+})
+  .fail(function(xhr,err,jquery) {
+    alert( xhr.responseText() );
+  });
+}
+
+function draw_chart(sum_of_session,session_data)
+{
+    var sum_object_array=[];
+    _.map(sum_of_session,function(data){
+    var sum_object={name:data.session,y:data.qty, drilldown: data.session }
+    sum_object_array.push(sum_object)
+    })
+ $('#volume_plan_container').highcharts({
+        chart: {
+            type: 'column'
+        },
+         title: {
+            text: 'Volume plan details'
+        },
+         xAxis: {
+            type: 'category'
+        },
+        yAxis: {
+            title: {
+                text: 'Values'
+            }
+        },
+        legend: {
+            enabled: false
+        },
+        plotOptions: {
+            series: {
+                borderWidth: 0,
+                dataLabels: {
+                    enabled: true,
+                    format: '{point.y:.1f}%'
+                }
+            }
+        },
+        tooltip: {
+            headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+            pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y:.2f}%</b> of total<br/>'
+        },
+        series: [{
+            data: sum_object_array
+        }],
+        drilldown: {
+            series: session_data
+        }
+    });
+}
+  
+  {{/yield-scripts}}

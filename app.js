@@ -10,10 +10,10 @@ var routes = require('./routes/live_data');
 var app = express();
 
 // view engine setup
-app.engine('hjs', require('hogan-express'));
+app.engine('html', require('hogan-express'));
 app.enable('view cache');
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'hjs');
+app.set('view engine', 'html');
 app.set('layout', 'template/layout');
 
 
