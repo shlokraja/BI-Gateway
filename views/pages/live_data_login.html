@@ -2,16 +2,21 @@
 <br />
 <div id="login" class="row vcenter">
     <!-- Remove vcenter to make the container top aligned -->
-
+<div class="success callout small" style="display:none" id='warning' data-closable="slide-out-right">
+  <p>This PIN is not yet registered.</p>
+  <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
     <div class="small-12 columns">
         <div class="row">
             <div class="small-12 small-centered columns">
                 <img src="/images/Freshly.png" alt="" /> <!-- Replace with the Respective Customer Logo -->
             </div>
         </div>
-
         <form>
             <div class="row">
+                <div id='error'></div>
                 <div class="small-12 columns">
                     <label>
                         Enter PIN
@@ -43,6 +48,16 @@
 
 
 {{#yield-scripts}}
+$(document).ready(function(){
+var err="{{err}}";
+if(err)
+{
+$('#warning').show();
+setTimeout(function(){
+$('#warning').hide();
+},3000)
+}
+})
         $('#btn_signup').on('click',function(e){
         var csvLink = 'get_sign_up';
         $('#btn_signup').attr('href', csvLink);
@@ -52,7 +67,10 @@
         var pin=$.trim($('#txt_pin').val());
         if(pin==undefined || pin=="")
         {
-        alert("Please fill box")
+        $.alert({
+            title: 'Notification!',
+            content: 'Please fill the PIN',
+        });
         return
         }
         var dash_link = 'check_credential?pin='+ pin;

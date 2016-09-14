@@ -10,10 +10,7 @@
                 <img src="/images/Freshly.png" alt="" /> <!-- Replace with the Respective Customer Logo -->
             </div>
         </div>
-
-
         <div class="row">
-
             <div class="small-12 columns">
                 <label>
                     Select City
@@ -66,6 +63,9 @@ $.post('generate_pin', {"selected_restaurant":selected_restaurant,"selected_city
              $.alert({
                 title: 'Notification!',
                 content: returnedData,
+                confirm: function(){
+                    window.location.href ='/'
+                }
             });
 
         }).fail(function(xhr,jquery,error){

@@ -140,6 +140,7 @@ function draw_chart(sum_of_session,session_data)
             pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y:.2f}%</b> of total<br/>'
         },
         series: [{
+            colorByPoint: true,
             data: sum_object_array
         }],
         drilldown: {
