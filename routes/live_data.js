@@ -96,7 +96,22 @@ router.get('/get_volume_plan', function (req, res) {
 
     //var date=req.query.date;
     live_data_model.get_session_data(1, function (err, response) {
+        if (err) {
+            console.log("Error occured while getting value from live_data_model.get_session_data" + err)
+            return
+        }
         res.send(response);
+    })
+})
+
+router.get('/get_live_sales_data', function (req, res) {
+    var restaurant_id=req.query.restaurant_id;
+    live_data_model.get_sales_data(4,function (err, response) {
+        if (err) {
+            console.log("Error occured while getting value from live_data_model.get_sales_data" + err)
+            return
+        }
+        res.send(response)
     })
 })
 

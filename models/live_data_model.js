@@ -10,8 +10,7 @@ var conString = config.dbConn;
 var get_session_data = function (restaurant_id, callback) {
     pg.connect(conString, function (err, client, done) {
         if (err) {
-            callback(err, null);
-            return;
+            return callback(new Error(err, null));
         }
         client.query(
             "select vpa.restaurant_id,food_item_id,fi.name,qty,session,po_id,master_fooditem_id,session_start,city_id \
@@ -26,7 +25,7 @@ var get_session_data = function (restaurant_id, callback) {
             function (query_err, restaurant) {
                 done();
                 if (query_err) {
-                    return callback(query_err, null);
+                    return callback(new Error(query_err, null));
                 } else {
                     return callback(null, restaurant.rows);
                 }
@@ -42,8 +41,7 @@ var initial_seed_data_signup = function (callback) {
                 [],
                 function (err, result) {
                     if (err) {
-                        callback('error running query' + err, null)
-                        return
+                        return callback('error running query' + err, null)
                     }
                     callback(null, result.rows)
                 })
@@ -79,7 +77,7 @@ var get_random_pin = function (callback) {
         if (err) {
             return callback(new Error('error fetching client from pool' + err))
         }
-        client.query('select alphanumeric_generator(6)',
+        client.query('select alphanumeric_generator(4)',
             [],
             function (query_err, pin_result) {
                 done();
@@ -137,10 +135,40 @@ var check_credentials = function (mpin, callback) {
 }
 
 
+var get_sales_data = function (restaurant_id,callback) {
+    pg.connect(conString, function (err, client, done) {
+        if (err) {
+           return callback(err, null)
+        }
+        client.query(
+            "select \
+                sum(soi.quantity) as qty,out.name as outlet_name, \
+                fi.name as food_item_name from sales_order so \
+                inner join sales_order_items soi on soi.sales_order_id=so.id \
+                inner join food_item fi on fi.id=soi.food_item_id \
+                inner join outlet out on  out.id=so.outlet_id \
+                where time::date=now()::date and fi.restaurant_id=$1 \
+                group by so.outlet_id,out.name,soi.food_item_id,fi.name \
+                order by out.name ",
+            [restaurant_id],
+            function (query_err, sales_data) {
+                done();
+                if (query_err) {
+                    return callback(query_err, null)
+                } else {
+                    return callback(null, sales_data.rows)
+                }
+            }
+        );
+    });
+};
+
+
 module.exports = {
     get_session_data: get_session_data,
     initial_seed_data_signup:initial_seed_data_signup,
     get_random_pin: get_random_pin,
     update_pin_to_restaurant: update_pin_to_restaurant,
-    check_credentials: check_credentials
+    check_credentials: check_credentials,
+    get_sales_data:get_sales_data
 }

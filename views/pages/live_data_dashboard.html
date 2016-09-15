@@ -13,7 +13,7 @@
     <ul class="tabs expanded" data-tabs id="example-tabs">
       <li class="tabs-title is-active"><a id="pnl_volume_plan" href="#panel1" aria-selected="true">Volume Plan</a></li>
       <li class="tabs-title"><a href="#panel2">Packing</a></li>
-      <li class="tabs-title"><a href="#panel3">Sales Live</a></li>
+      <li class="tabs-title"><a id='sales_live' href="#sales_live_panel">Sales Live</a></li>
       <li class="tabs-title"><a href="#panel4">Sales Summary</a></li>
     </ul>
 
@@ -27,14 +27,14 @@
         <!-- Replace with the Respective Customer Logo -->
         <p>Packing - Content</p>
       </div>
-      <div class="tabs-panel" id="panel3">
+      <div class="tabs-panel" id="sales_live_panel">
         <!-- Replace with the Respective Customer Logo -->
 
         <div class="expanded button-group">
           <a class="button" id="Outletwise">Outletwise</a>
           <a class="button" id="Productwise">Productwise</a>
         </div>
-
+        <div id="live_sales_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
       </div>
       <div class="tabs-panel" id="panel4">
         <!-- Replace with the Respective Customer Logo -->
@@ -52,6 +52,82 @@
  {{/yield-styles}}
 
  {{#yield-scripts}}
+var sales_live_data;
+
+$(document).ready(function(){
+    get_volume_plan_data();
+});
+
+$('#Productwise').click(function(){
+var restaurant_id=$('#main_row').attr('data-restaurant_id')
+$.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live_data) {
+  
+var productwise_wise_sum_of_sales = _.chain(sales_live_data)
+    .groupBy("food_item_name")
+    .map(function(value, key) {
+        return {
+            name: key,
+            qty: sum(_.pluck(value, "qty"))
+        }
+    })
+    .value();
+
+var food_item_wise_outlet= _.chain(sales_live_data)
+    .groupBy("food_item_name")
+    .map(function(value, key) {
+    var data=[];
+        _.map(value,function(x){
+        var datas=[];
+        datas.push(x.outlet_name)
+        datas.push( parseInt(x.qty))
+         data.push(datas)
+        })
+        return {name:key,id:key,data};
+    })
+    .value();
+
+ draw_chart('live_sales_container','Product wise details',productwise_wise_sum_of_sales,food_item_wise_outlet)
+})
+  .fail(function(xhr,err,jquery) {
+    alert( xhr.responseText() );
+  });
+})
+
+$('#Outletwise').click(function(){
+var restaurant_id=$('#main_row').attr('data-restaurant_id')
+$.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live_data) {
+ 
+var outlet_wise_sum_of_sales = _.chain(sales_live_data)
+    .groupBy("outlet_name")
+    .map(function(value, key) {
+        return {
+            name: key,
+            qty: sum(_.pluck(value, "qty"))
+        }
+    })
+    .value();
+
+
+var outlet_wise_food_item = _.chain(sales_live_data)
+    .groupBy("outlet_name")
+    .map(function(value, key) {
+    var data=[];
+        _.map(value,function(x){
+        var datas=[];
+        datas.push(x.food_item_name)
+        datas.push( parseInt(x.qty))
+         data.push(datas)
+        })
+        return {name:key,id:key,data};
+    })
+    .value();
+
+ draw_chart('live_sales_container','Outlet wise details',outlet_wise_sum_of_sales,outlet_wise_food_item)
+})
+  .fail(function(xhr,err,jquery) {
+    alert( xhr.responseText() );
+  });
+})
 
 function sum(numbers) {
     return _.reduce(numbers, function(result, current) {
@@ -61,9 +137,6 @@ function sum(numbers) {
 $('#btn_refresh').click(function(){
     get_volume_plan_data();
 })
-$(document).ready(function(){
-    get_volume_plan_data();
-});
 
 function get_volume_plan_data()
 {
@@ -74,7 +147,7 @@ var sum_of_session = _.chain(data)
     .groupBy("session")
     .map(function(value, key) {
         return {
-            session: key,
+            name: key,
             qty: sum(_.pluck(value, "qty"))
         }
     })
@@ -94,26 +167,26 @@ var session_data = _.chain(data)
     })
     .value();
 
-    draw_chart(sum_of_session,session_data)
+    draw_chart('volume_plan_container','Volume plan details',sum_of_session,session_data)
 })
   .fail(function(xhr,err,jquery) {
     alert( xhr.responseText() );
   });
 }
 
-function draw_chart(sum_of_session,session_data)
+function draw_chart(container,title_text,sum_of_session,session_data)
 {
     var sum_object_array=[];
     _.map(sum_of_session,function(data){
-    var sum_object={name:data.session,y:data.qty, drilldown: data.session }
+    var sum_object={name:data.name,y:data.qty, drilldown: data.name }
     sum_object_array.push(sum_object)
     })
- $('#volume_plan_container').highcharts({
+ $('#'+container).highcharts({
         chart: {
             type: 'column'
         },
          title: {
-            text: 'Volume plan details'
+            text: title_text
         },
          xAxis: {
             type: 'category'
@@ -130,14 +203,13 @@ function draw_chart(sum_of_session,session_data)
             series: {
                 borderWidth: 0,
                 dataLabels: {
-                    enabled: true,
-                    format: '{point.y:.1f}%'
+                    enabled: true
                 }
             }
         },
         tooltip: {
             headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
-            pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y:.2f}%</b> of total<br/>'
+            pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y}</b> of total<br/>'
         },
         series: [{
             colorByPoint: true,
