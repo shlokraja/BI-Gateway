@@ -10,6 +10,7 @@ var conString = config.dbConn
 var encrypt_decrypt = require('../utils/encryption_decryption')
 var mailer = require('../utils/mail_helper')
 var live_data_model = require('../models/live_data_model')
+var request = require('request')
 
 router.get('/', function (req, res, next) {
     console.log("************************ called")
@@ -21,15 +22,20 @@ router.get('/', function (req, res, next) {
 });
 
 router.get('/get_sign_up', function (req, res, next) {
-
-    console.log("************************ get_sign_up called")
-    live_data_model.initial_seed_data_signup(function (err, response) {
-        var context = {
-            title: 'Foodbox',
-            restaurants: response.restaurant,
-            city: response.city
+    var url = 'http://localhost:9090/get_city_restaurant';
+    request(url, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var info = JSON.parse(body)
+            var context = {
+                title: 'Foodbox',
+                restaurants: info.data.restaurants,
+                city: info.data.city
+            }
+            res.render('pages/live_data_signup', context)
         }
-        res.render('pages/live_data_signup', context)
+        if (error) {
+            res.status(500).send({ error: 'Something failed ' + error.errno });
+        }
     })
 });
 
@@ -39,53 +45,47 @@ router.post('/generate_pin', function (req, res) {
     var restaurant_id = restaurant_detail[0];
     var restaurant_email_id = restaurant_detail[1];
     var selected_city = req.body.selected_city;
-    live_data_model.get_random_pin(function (err, response) {
-        if (err) {
-            console.log("Error occured while getting value from live_data_model.get_random_pin" + err)
-            return
+
+    var url = 'http://localhost:9090/generate_pin?restaurant_id=' + restaurant_id + '&restaurant_email_id=' + restaurant_email_id + '&selected_city=' + selected_city
+    request(url, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var info = JSON.parse(body)
+            if (info.status == "FAIL") {
+                res.send('Unknown err occured please try afer some time');
+            } else {
+                res.send(info.message_text);
+            }
         }
-        if (response) {
-            var encrypted_response = encrypt_decrypt.text_encrypt(response.alphanumeric_generator)
-            live_data_model.update_pin_to_restaurant(encrypted_response, restaurant_id, function (err, update_response) {
-                if (err) {
-                    console.log("Error occured while getting value from live_data_model.update_pin_to_restaurant" + err)
-                    return
-                }
-                if (update_response) {
-                    var mail_content = "Please use this pin to login " + response.alphanumeric_generator
-                    mailer.send_mail("MPIN login details", mail_content, restaurant_email_id, function (err, response) {
-                        if (err) {
-                            res.send('Unknown err occured please try afer some time');
-                        }
-                        res.send('Successfully generated and mailed');
-                    })
-                }
-            })
+        if (error) {
+            res.status(500).send({ error: 'Something failed ' + error.errno });
         }
     })
 })
 
 router.get('/check_credential', function (req, res) {
     var mpin = req.query.pin;
-    console.log("************************ check_credential called" + mpin)
-    var encrypted_response = encrypt_decrypt.text_encrypt(mpin)
-    live_data_model.check_credentials(encrypted_response, function (err, response) {
-        if (err) {
-            var context = {
-                title: 'Foodbox',
-                err: 'This PIN is not yet registered'
+    var url = 'http://localhost:9090/check_credential?pin=' + mpin;
+    request(url, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var info = JSON.parse(body)
+            if (info.status == "FAIL") {
+                var context = {
+                    title: 'Foodbox',
+                    err: info.message_text
+                }
+                res.render('pages/live_data_login', context);
+            } else {
+                var context = {
+                    title: 'Foodbox',
+                    restaurant_id: info.data.restaurant_id,
+                    restaurant_name: info.data.restaurant_name
+                }
+                console.log("************************ Above render")
+                res.render('pages/live_data_dashboard', context);
             }
-            res.render('pages/live_data_login', context);
         }
-        //res.send('Welcome ' + pin_result.rows[0].name);
-        if (response) {
-            var context = {
-                title: 'Foodbox',
-                restaurant_id: response.id,
-                restaurant_name: response.name
-            }
-            console.log("************************ Above render")
-            res.render('pages/live_data_dashboard', context);
+        if (error) {
+            res.status(500).send({ error: 'Something failed ' + error.errno });
         }
     })
 });
@@ -94,24 +94,44 @@ router.get('/check_credential', function (req, res) {
 router.get('/get_volume_plan', function (req, res) {
     var restaurant_id = req.query.restaurant_id;
 
-    //var date=req.query.date;
-    live_data_model.get_session_data(1, function (err, response) {
-        if (err) {
-            console.log("Error occured while getting value from live_data_model.get_session_data" + err)
-            return
+    var url = 'http://localhost:9090/get_volume_plan_data?restaurant_id=' + restaurant_id;
+    request(url, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var info = JSON.parse(body)
+            res.send(info.data.volume_plan)
         }
-        res.send(response);
+        if (error) {
+            res.status(500).send({ error: 'Something failed ' + error.errno });
+        }
     })
 })
 
 router.get('/get_live_sales_data', function (req, res) {
-    var restaurant_id=req.query.restaurant_id;
-    live_data_model.get_sales_data(4,function (err, response) {
-        if (err) {
-            console.log("Error occured while getting value from live_data_model.get_sales_data" + err)
-            return
+    var restaurant_id = req.query.restaurant_id;
+    var url = 'http://localhost:9090/get_live_sales_data?restaurant_id=' + restaurant_id;
+    request(url, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var info = JSON.parse(body)
+            res.send(info.data.live_sales_data)
         }
-        res.send(response)
+        if (error) {
+            res.status(500).send({ error: 'Something failed ' + error.errno });
+        }
+    })
+})
+
+router.get('/get_sales_summary', function (req, res) {
+    var restaurant_id = req.query.restaurant_id;
+
+    var url = 'http://localhost:9090/get_sales_summary?restaurant_id=' + restaurant_id;
+    request(url, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var info = JSON.parse(body)
+            res.send(info.data.sales_summary)
+        }
+        if (error) {
+            res.status(500).send({ error: 'Something failed ' + error.errno });
+        }
     })
 })
 

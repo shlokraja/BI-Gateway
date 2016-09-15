@@ -135,10 +135,10 @@ var check_credentials = function (mpin, callback) {
 }
 
 
-var get_sales_data = function (restaurant_id,callback) {
+var get_sales_data = function (restaurant_id, callback) {
     pg.connect(conString, function (err, client, done) {
         if (err) {
-           return callback(err, null)
+            return callback(err, null)
         }
         client.query(
             "select \
@@ -163,12 +163,63 @@ var get_sales_data = function (restaurant_id,callback) {
     });
 };
 
+var get_sales_summary = function (restaurant_id, callback) {
+    pg.connect(conString, function (err, client, done) {
+        if (err) {
+            return callback(err, null)
+        }
+        client.query(
+            "select s.outlet_id,f.location, sum(f.mrp*si.quantity) as sale ,'Daily' as period from food_item f, \
+            sales_order_items si, sales_order s where s.id=si.sales_order_id and \
+            si.food_item_id=f.id and s.outlet_id=f.outlet_id and f.restaurant_id=$1 \
+            and s.time > (select max(time) \
+            from supplies s, supplies_master_list m \
+            where s.phase='start_of_day' \
+            and s.food_item_id=m.food_item_id ) \
+            group by f.location , s.outlet_id \
+            union all \
+            select s.outlet_id,f.location, sum(f.mrp*si.quantity) as sale,'Monthly' as period  from food_item f, \
+            sales_order_items si, sales_order s where s.id=si.sales_order_id and f.restaurant_id=$1 and  \
+            si.food_item_id=f.id and s.outlet_id=f.outlet_id  \
+            and to_char(time,'MMYYYY') = to_char(now(),'MMYYYY') \
+            group by f.location , s.outlet_id \
+            union all \
+            select s.outlet_id,f.location, sum(f.mrp*si.quantity) as sale,'Weekly' as period  from food_item f, \
+            sales_order_items si, sales_order s where s.id=si.sales_order_id and f.restaurant_id=$1 and \
+            si.food_item_id=f.id and s.outlet_id=f.outlet_id  \
+            and date_part('week',time) = date_part('week',now())  \
+            group by f.location , s.outlet_id \
+            union all \
+            select s.outlet_id,f.location, sum(f.mrp*si.quantity) as sale,'Quarterly' as period  from food_item f, \
+            sales_order_items si, sales_order s where s.id=si.sales_order_id and f.restaurant_id=$1 and \
+            si.food_item_id=f.id and s.outlet_id=f.outlet_id \
+            and date_part('quarter',time) = date_part('quarter',now()) \
+            group by f.location , s.outlet_id \
+            union all \
+            select s.outlet_id,f.location, sum(f.mrp*si.quantity) as sale,'Halfyearly' as period  from food_item f, \
+            sales_order_items si, sales_order s where s.id=si.sales_order_id and f.restaurant_id=$1 and \
+            si.food_item_id=f.id and s.outlet_id=f.outlet_id \
+            and date_part('quarter',time)  between  date_part('quarter',time) -1 and date_part('quarter',time) \
+            group by f.location , s.outlet_id",
+            [restaurant_id],
+            function (query_err, get_sales_summary) {
+                done();
+                if (query_err) {
+                    return callback(query_err, null)
+                } else {
+                    return callback(null, get_sales_summary.rows)
+                }
+            }
+        );
+    });
+};
 
 module.exports = {
     get_session_data: get_session_data,
-    initial_seed_data_signup:initial_seed_data_signup,
+    initial_seed_data_signup: initial_seed_data_signup,
     get_random_pin: get_random_pin,
     update_pin_to_restaurant: update_pin_to_restaurant,
     check_credentials: check_credentials,
-    get_sales_data:get_sales_data
+    get_sales_data: get_sales_data,
+    get_sales_summary: get_sales_summary
 }

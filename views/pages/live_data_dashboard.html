@@ -14,7 +14,7 @@
       <li class="tabs-title is-active"><a id="pnl_volume_plan" href="#panel1" aria-selected="true">Volume Plan</a></li>
       <li class="tabs-title"><a href="#panel2">Packing</a></li>
       <li class="tabs-title"><a id='sales_live' href="#sales_live_panel">Sales Live</a></li>
-      <li class="tabs-title"><a href="#panel4">Sales Summary</a></li>
+      <li class="tabs-title"><a id="sales_summary" href="#panel4">Sales Summary</a></li>
     </ul>
 
     <div class="tabs-content" data-tabs-content="example-tabs">
@@ -38,7 +38,16 @@
       </div>
       <div class="tabs-panel" id="panel4">
         <!-- Replace with the Respective Customer Logo -->
-        <p>Sales Summary</p>
+        <table>
+            <thead>
+                <tr>
+                     <th width="200">Period</th>
+                     <th width="200">Sales Rs</th>
+                </tr>
+            </thead>
+            <tbody id="sales_summary_container">
+            </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -57,6 +66,31 @@ var sales_live_data;
 $(document).ready(function(){
     get_volume_plan_data();
 });
+
+$('#sales_summary').click(function(){
+var restaurant_id=$('#main_row').attr('data-restaurant_id')
+$.get('get_sales_summary',{'restaurant_id':restaurant_id}, function(sales_summary_data) {
+
+  var productwise_wise_sum_of_sales = _.chain(sales_summary_data)
+    .groupBy("period")
+    .map(function(value, key) {
+        return {
+            period: key,
+            sale:sum(_.pluck(value, "sale"))
+        }
+    })
+    .value();
+
+var table_body='';
+$.map(productwise_wise_sum_of_sales,function(data){
+table_body+='<tr><td>'+ data.period+' </td><td> '+data.sale+' </td></tr>'
+})
+ $('#sales_summary_container').html(table_body)
+})
+  .fail(function(xhr,err,jquery) {
+    alert( xhr.responseText);
+  });
+})
 
 $('#Productwise').click(function(){
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
@@ -89,7 +123,7 @@ var food_item_wise_outlet= _.chain(sales_live_data)
  draw_chart('live_sales_container','Product wise details',productwise_wise_sum_of_sales,food_item_wise_outlet)
 })
   .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText() );
+    alert( xhr.responseText);
   });
 })
 
@@ -125,7 +159,7 @@ var outlet_wise_food_item = _.chain(sales_live_data)
  draw_chart('live_sales_container','Outlet wise details',outlet_wise_sum_of_sales,outlet_wise_food_item)
 })
   .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText() );
+    alert( xhr.responseText );
   });
 })
 
@@ -170,7 +204,7 @@ var session_data = _.chain(data)
     draw_chart('volume_plan_container','Volume plan details',sum_of_session,session_data)
 })
   .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText() );
+    alert( xhr.responseText);
   });
 }
 
