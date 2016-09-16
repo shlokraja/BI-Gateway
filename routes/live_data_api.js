@@ -12,18 +12,8 @@ var encrypt_decrypt = require('../utils/encryption_decryption')
 var mailer = require('../utils/mail_helper')
 var live_data_model = require('../models/live_data_model')
 
-
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-// router.get('/', function (req, res, next) {
-//     console.log("************************ called")
-//     var context = {
-//         title: 'Foodbox'
-//     };
-
-//     res.render('pages/live_data_login', context);
-// });
 
 var success_status = "SUCCESS";
 var fail_status = "FAIL";
@@ -197,8 +187,7 @@ app.get('/get_live_sales_data', function (req, res) {
                 res.send(context);
                 return;
             }
-            message_text = 'Query returns with ' + response.length + ' rows'
-            var context = { data: { live_sales_data: response }, message_text: message_text, status: success_status };
+            var context = { data: { live_sales_data: response }, status: success_status };
             res.json(context);
             return
         })
@@ -231,6 +220,25 @@ app.get('/get_sales_summary', function (req, res) {
     })
 })
 
-app.listen('9090');
+app.get('/get_live_packing_data', function (req, res) {
+    var restaurant_id = req.query.restaurant_id;
+    live_data_model.get_live_packing_data(restaurant_id, function (err, response) {
+        if (err) {
+            handleError("Error occured while getting value from live_data_model.get_sales_data" + err);
+            message_text = no_data_found;
+            status_text = fail_status;
+            context = { data: { 'result': output }, message: message_text, status: status_text };
+            res.send(context);
+            return;
+        }
+        var context = { data: { live_packing: response }, status: success_status };
+        res.json(context);
+        return
+    })
+})
+
+app.listen('9090', function () {
+    general.genericError('Example router listening on port 9091!');
+});
 
 module.exports = app;

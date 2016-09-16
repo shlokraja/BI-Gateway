@@ -12,7 +12,7 @@
 
     <ul class="tabs expanded" data-tabs id="example-tabs">
       <li class="tabs-title is-active"><a id="pnl_volume_plan" href="#panel1" aria-selected="true">Volume Plan</a></li>
-      <li class="tabs-title"><a href="#panel2">Packing</a></li>
+      <li class="tabs-title"><a id='live_packing' href="#panel2">Packing</a></li>
       <li class="tabs-title"><a id='sales_live' href="#sales_live_panel">Sales Live</a></li>
       <li class="tabs-title"><a id="sales_summary" href="#panel4">Sales Summary</a></li>
     </ul>
@@ -25,20 +25,21 @@
       </div>
       <div class="tabs-panel" id="panel2">
         <!-- Replace with the Respective Customer Logo -->
-        <p>Packing - Content</p>
+         <div id="live_packing_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
       </div>
       <div class="tabs-panel" id="sales_live_panel">
         <!-- Replace with the Respective Customer Logo -->
 
         <div class="expanded button-group">
-          <a class="button" id="Outletwise">Outletwise</a>
-          <a class="button" id="Productwise">Productwise</a>
+          <a class="button" id="sold_taken">Sales Live</a>
+          <a class="button" id="Outletwise">Outlet wise</a>
+          <a class="button" id="Productwise">Product wise</a>
         </div>
         <div id="live_sales_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
       </div>
       <div class="tabs-panel" id="panel4">
         <!-- Replace with the Respective Customer Logo -->
-        <table>
+        <table border='2'>
             <thead>
                 <tr>
                      <th width="200">Period</th>
@@ -57,15 +58,149 @@
 
 {{#yield-styles}}
 
+table {
+    border-collapse: collapse !important;
+}
 
+table, th, td {
+    border: 1px solid black !important;
+}
  {{/yield-styles}}
 
  {{#yield-scripts}}
-var sales_live_data;
 
 $(document).ready(function(){
     get_volume_plan_data();
 });
+
+$('#sold_taken').click(function(e){
+var restaurant_id=$('#main_row').attr('data-restaurant_id')
+$.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live) {
+var total_quantity=0;
+$.map(sales_live.sales_data,function(item){
+total_quantity+=parseInt(item.qty);
+})
+var unsold=parseInt(sales_live.taken_data)-total_quantity;
+var new_data={Sold:total_quantity,Unsold:unsold}
+var main_array=[];
+$.map(new_data,function(item,key){
+var data=[];
+total_quantity+=item
+data.push(item)
+main_array.push({name:key,data:data})
+})
+ 
+  $('#live_sales_container').highcharts({
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Sales Live'
+        },
+        xAxis: {
+            categories: ['Food Item']
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Total Items'
+            },
+            stackLabels: {
+                enabled: true,
+                style: {
+                    fontWeight: 'bold',
+                    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                }
+            }
+        },
+        tooltip: {
+            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+            shared: true
+        },
+        plotOptions: {
+            column: {
+                stacking: 'normal',
+                
+				dataLabels: {
+                    enabled: true,
+                    formatter:function() {
+                    var pcnt = (this.y /total_quantity) * 100;
+                    return Highcharts.numberFormat(pcnt) + '%';
+                },
+                }
+            }
+        },
+        series: main_array
+    });
+    
+})
+  .fail(function(xhr,err,jquery) {
+    alert( xhr.responseText);
+  });
+})
+
+
+
+$('#live_packing').click(function(e){
+var restaurant_id=$('#main_row').attr('data-restaurant_id')
+$.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
+var total_quantity=0;
+var main_array=[];
+$.map(live_packing_data,function(item,key){
+var data=[];
+total_quantity+=item
+data.push(item)
+main_array.push({name:key,data:data})
+})
+ 
+  $('#live_packing_container').highcharts({
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Packing Status'
+        },
+        xAxis: {
+            categories: ['Food Item']
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Total Items'
+            },
+            stackLabels: {
+                enabled: true,
+                style: {
+                    fontWeight: 'bold',
+                    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                }
+            }
+        },
+        tooltip: {
+            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+            shared: true
+        },
+        plotOptions: {
+            column: {
+                stacking: 'normal',
+                
+				dataLabels: {
+                    enabled: true,
+                    formatter:function() {
+                    var pcnt = (this.y /total_quantity) * 100;
+                    return Highcharts.numberFormat(pcnt) + '%';
+                },
+                }
+            }
+        },
+        series: main_array
+    });
+	
+})
+  .fail(function(xhr,err,jquery) {
+    alert( xhr.responseText);
+  });
+})
 
 $('#sales_summary').click(function(){
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
@@ -83,7 +218,7 @@ $.get('get_sales_summary',{'restaurant_id':restaurant_id}, function(sales_summar
 
 var table_body='';
 $.map(productwise_wise_sum_of_sales,function(data){
-table_body+='<tr><td>'+ data.period+' </td><td> '+data.sale+' </td></tr>'
+table_body+='<tr><td>'+ data.period+' </td><td style="text-align:right"> '+data.sale.toFixed(2)+' </td></tr>'
 })
  $('#sales_summary_container').html(table_body)
 })
@@ -96,7 +231,7 @@ $('#Productwise').click(function(){
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
 $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live_data) {
   
-var productwise_wise_sum_of_sales = _.chain(sales_live_data)
+var productwise_wise_sum_of_sales = _.chain(sales_live_data.sales_data)
     .groupBy("food_item_name")
     .map(function(value, key) {
         return {
@@ -106,7 +241,7 @@ var productwise_wise_sum_of_sales = _.chain(sales_live_data)
     })
     .value();
 
-var food_item_wise_outlet= _.chain(sales_live_data)
+var food_item_wise_outlet= _.chain(sales_live_data.sales_data)
     .groupBy("food_item_name")
     .map(function(value, key) {
     var data=[];
@@ -131,7 +266,7 @@ $('#Outletwise').click(function(){
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
 $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live_data) {
  
-var outlet_wise_sum_of_sales = _.chain(sales_live_data)
+var outlet_wise_sum_of_sales = _.chain(sales_live_data.sales_data)
     .groupBy("outlet_name")
     .map(function(value, key) {
         return {
@@ -141,8 +276,7 @@ var outlet_wise_sum_of_sales = _.chain(sales_live_data)
     })
     .value();
 
-
-var outlet_wise_food_item = _.chain(sales_live_data)
+var outlet_wise_food_item = _.chain(sales_live_data.sales_data)
     .groupBy("outlet_name")
     .map(function(value, key) {
     var data=[];
