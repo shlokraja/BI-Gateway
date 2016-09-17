@@ -15,34 +15,52 @@ var get_live_packing_data = function (restaurant_id, callback) {
             return callback(new Error(err, null));
         }
         client.query(
-            "select sum(polist.quantity) as total_quantity,recon.firebase_url from purchase_order  po \
+            "select sum(polist.quantity) as total_quantity,po.session_name,po.id from purchase_order  po \
             inner join purchase_order_master_list polist on polist.purchase_order_id=po.id \
-            inner join restaurant_config recon on recon.restaurant_id=po.restaurant_id \
-            where po.restaurant_id=$1 and scheduled_delivery_time::date=now()::date \
-            group by recon.firebase_url",
+            where po.restaurant_id=$1 and po.scheduled_delivery_time::date=now()::date \
+            group by po.session_name,po.id",
             [restaurant_id],
             function (query_err, total_live_count) {
                 done();
                 if (query_err) {
                     return callback(new Error(query_err, null));
                 }
-                if (total_live_count.row) {
-                    var total_quantity = total_live_count.rows[0].total_quantity;
-                    var rootref = new Firebase(total_live_count.rows[0].firebase_url);
-                    var total_packed = 0;
-                    var live_packing_data = rootref.child('{}/'.format(restaurant_id));
-                    var item_data = [];
-                    // Getting the stock data
-                    live_packing_data.once("value", function (data) {
-                        var data = data.val();
-                        var flat = _.flatten(_.map(data, _.values))
-                        _.map(_.pluck(flat, 'barcodes'), function (barcode) {
-                            total_packed += Object.keys(barcode).length;
+                if (total_live_count.rows) {
+                    get_restaurant_details(restaurant_id, function (err, restaurant_details) {
+                        var total_quantity = 0;
+                        _.map(total_live_count.rows, function (item) {
+                            total_quantity += parseInt(item.total_quantity)
                         })
-                        var unpacked = total_quantity - total_packed;
-                        var context = { total_packed: total_packed, unpacked: unpacked }
-                        return callback(null, context);
-                    });
+
+                        var rootref = new Firebase(restaurant_details.firebase_url);
+                        var overall_packed = 0
+                        var live_packing_data = rootref.child('{}/'.format(restaurant_id));
+                        var item_data = [];
+                        // Getting the stock data
+                        live_packing_data.once("value", function (data) {
+                            var data = data.val();
+                            var session_wise_details = [];
+                            for (var key in data) {
+                                var session_wise_packed = 0;
+                                var x = _.where(total_live_count.rows, { id: parseInt(key) });
+                                var po_id = key;
+                                var val = data[key];
+                                _.map(_.pluck(val, 'barcodes'), function (barcode) {
+                                    session_wise_packed += Object.keys(barcode).length;
+                                })
+                                overall_packed += session_wise_packed
+                                session_unpacked = x[0].total_quantity - session_wise_packed
+                                session_wise_details.push({ po_id: po_id, session: x[0].session_name, total_packed: session_wise_packed, session_unpacked: session_unpacked })
+                            }
+
+                            var unpacked = total_quantity - overall_packed;
+                            var context = { overall_packed: overall_packed, unpacked: unpacked, session_wise_details: session_wise_details }
+                            return callback(null, context);
+                        });
+                    })
+
+                } else {
+                    return callback(new Error("No data found"));
                 }
             }
         );
@@ -99,7 +117,7 @@ var initial_seed_data_signup = function (callback) {
                         callback('error running query' + err, null)
                         return
                     }
-                    callback(null, result.rows)
+                    return callback(null, result.rows)
                 })
         }
     },
@@ -147,6 +165,8 @@ var update_pin_to_restaurant = function (mpin, restaurant_id, callback) {
                 }
                 if (pin_result) {
                     return callback(null, 'Successfully inserted')
+                } else {
+                    return callback(new Error('Unexpected error occured while updating entries'))
                 }
             })
     })
@@ -157,7 +177,7 @@ var check_credentials = function (mpin, callback) {
         if (err) {
             return callback(new Error('error fetching client from pool' + err))
         }
-        client.query('select res.name,res.id,res.short_name from restaurant res \
+        client.query('select res.name,res.id,res.short_name,rcon.firebase_url from restaurant res \
                 inner join restaurant_config rcon on rcon.restaurant_id=res.id where rcon.mpin=$1',
             [mpin],
             function (query_err, pin_result) {
@@ -185,6 +205,7 @@ var get_sales_data = function (restaurant_id, callback) {
                     where po.restaurant_id=$1 and received_time::date=now()::date'
             , [restaurant_id],
             function (query_err, taken_result) {
+                done();
                 if (query_err) {
                     return callback(query_err, null)
                 }
@@ -204,8 +225,11 @@ var get_sales_data = function (restaurant_id, callback) {
                             done();
                             if (query_err) {
                                 return callback(query_err, null)
-                            } else {
+                            }
+                            if (sales_data.rows) {
                                 return callback(null, { taken_data: taken_result.rows[0].taken, sales_data: sales_data.rows })
+                            } else {
+                                return callback(new Error('No data found'))
                             }
                         });
                 }
@@ -257,13 +281,38 @@ var get_sales_summary = function (restaurant_id, callback) {
                 done();
                 if (query_err) {
                     return callback(query_err, null)
-                } else {
+                }
+                if (get_sales_summary.rows) {
                     return callback(null, get_sales_summary.rows)
+                } else {
+                    return callback(new Error('No data found'))
                 }
             }
         );
     });
 };
+
+var get_restaurant_details = function (restaurant_id, callback) {
+    pg.connect(conString, function (err, client, done) {
+        if (err) {
+            return callback(new Error('error fetching client from pool' + err))
+        }
+        client.query('select firebase_url,printer_ip,sender_email_bak,max_print_count,test_template,sender_email,mpin \
+        from restaurant_config where restaurant_id=$1',
+            [restaurant_id],
+            function (query_err, restaurant_result) {
+                done();
+                if (query_err) {
+                    return callback(new Error('error running query' + query_err))
+                }
+                if (restaurant_result.rows[0]) {
+                    return callback(null, restaurant_result.rows[0])
+                } else {
+                    return callback(new Error('No data found'))
+                }
+            })
+    })
+}
 
 module.exports = {
     get_live_packing_data: get_live_packing_data,

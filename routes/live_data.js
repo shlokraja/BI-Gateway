@@ -19,8 +19,21 @@ router.get('/', function (req, res, next) {
     var context = {
         title: 'Foodbox'
     };
+    var cookie = req.cookies.login_details;
+    
+    if (cookie != undefined) {
+        var context = {
+            title: 'Foodbox',
+            restaurant_id: cookie.restaurant_id,
+            restaurant_name: cookie.restaurant_name,
+            restaurant_short_name: cookie.restaurant_short_name
+        }
 
-    res.render('pages/live_data_login', context);
+        console.log("************************ Above render")
+        res.render('pages/live_data_dashboard', context);
+    } else {
+        res.render('pages/live_data_login', context);
+    }
 });
 
 router.get('/get_sign_up', function (req, res, next) {
@@ -66,6 +79,7 @@ router.post('/generate_pin', function (req, res) {
 
 router.get('/check_credential', function (req, res) {
     var mpin = req.query.pin;
+    res.clearCookie('login_details');
     var url = api_url + 'check_credential?pin=' + mpin;
     request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
@@ -80,8 +94,16 @@ router.get('/check_credential', function (req, res) {
                 var context = {
                     title: 'Foodbox',
                     restaurant_id: info.data.restaurant_id,
-                    restaurant_name: info.data.restaurant_name
+                    restaurant_name: info.data.restaurant_name,
+                    restaurant_short_name: info.data.short_name
                 }
+
+                var cookie = req.cookies.login_details;
+                if (cookie === undefined) {
+                    res.cookie('login_details', { restaurant_id: info.data.restaurant_id, restaurant_name: info.data.restaurant_name, firebase_url: info.data.firebase_url,  restaurant_short_name: info.data.short_name }, { maxAge: 7*24*60*60*1000, httpOnly: true });
+                    console.log('cookie created successfully');
+                }
+
                 console.log("************************ Above render")
                 res.render('pages/live_data_dashboard', context);
             }
@@ -114,7 +136,7 @@ router.get('/get_live_sales_data', function (req, res) {
     request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var info = JSON.parse(body)
-            res.send({sales_data:info.data.live_sales_data.sales_data,taken_data:info.data.live_sales_data.taken_data})
+            res.send({ sales_data: info.data.live_sales_data.sales_data, taken_data: info.data.live_sales_data.taken_data })
         }
         if (error) {
             res.status(500).send({ error: 'Something failed ' + error.errno });
@@ -147,7 +169,7 @@ router.get('/live_packing_data', function (req, res) {
             res.send(info.data.live_packing)
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send({ error: 'Something failed ' + error.message });
         }
     })
 })

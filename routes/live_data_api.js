@@ -84,7 +84,10 @@ app.get('/generate_pin', function (req, res) {
                     }
                     if (update_response) {
                         var mpin_value = response.alphanumeric_generator
-                        var mail_content = "Please use this pin to login " + mpin_value
+                        "Please use this pin to login " + mpin_value
+                        var mail_content = '<html><head></head><body><table border="1"><thead style=" background-color: #3eb049; color: white; font-weight: bold;"> \
+                        <tr><td> The Mobile PIN for your restaurant is</td></tr></thead><tbody style="background-color:#f0f0f0; color:black; text-align: center; padding: 8px;"> \
+                        <tr><td>'+ mpin_value + '</td></tr></tbody> </table></body></html>'
                         console.log("mail_content " + mail_content)
                         mailer.send_mail("MPIN login details", mail_content, restaurant_email_id, function (err, response) {
                             if (err) {
@@ -128,7 +131,7 @@ app.get('/check_credential', function (req, res) {
             }
             //res.send('Welcome ' + pin_result.rows[0].name);
             if (response) {
-                var context = { data: { 'restaurant_id': response.id, 'restaurant_name': response.name, 'short_name': response.short_name }, status: success_status };
+                var context = { data: { 'restaurant_id': response.id, 'restaurant_name': response.name, 'short_name': response.short_name, 'firebase_url': response.firebase_url }, status: success_status };
                 res.json(context);
                 return
             }
@@ -202,39 +205,58 @@ app.get('/get_live_sales_data', function (req, res) {
 })
 
 app.get('/get_sales_summary', function (req, res) {
-    var restaurant_id = req.query.restaurant_id;
+    try {
+        var restaurant_id = req.query.restaurant_id;
 
-    live_data_model.get_sales_summary(restaurant_id, function (err, response) {
-        if (err) {
-            handleError("Error occured while getting value from live_data_model.get_sales_data" + err);
-            message_text = no_data_found;
-            status_text = fail_status;
-            context = { data: { 'result': output }, message: message_text, status: status_text };
-            res.send(context);
-            return;
-        }
-        message_text = 'Query returns with ' + response.length + ' rows'
-        var context = { data: { sales_summary: response }, message_text: message_text, status: success_status };
-        res.json(context);
-        return
-    })
+        live_data_model.get_sales_summary(restaurant_id, function (err, response) {
+            if (err) {
+                handleError("Error occured while getting value from live_data_model.get_sales_data" + err);
+                message_text = no_data_found;
+                status_text = fail_status;
+                context = { data: { 'result': output }, message: message_text, status: status_text };
+                res.send(context);
+                return;
+            }
+            message_text = 'Query returns with ' + response.length + ' rows'
+            var context = { data: { sales_summary: response }, message_text: message_text, status: success_status };
+            res.json(context);
+            return
+        })
+    } catch (ex) {
+        general.genericError("live_dataq_api.js :: get_volume_plan_data: " + ex);
+        message_text = no_data_found;
+        status_text = fail_status;
+        context = { data: { 'result': '' }, message: message_text, status: status_text };
+        res.send(context);
+        return;
+    }
 })
 
 app.get('/get_live_packing_data', function (req, res) {
-    var restaurant_id = req.query.restaurant_id;
-    live_data_model.get_live_packing_data(restaurant_id, function (err, response) {
-        if (err) {
-            handleError("Error occured while getting value from live_data_model.get_sales_data" + err);
-            message_text = no_data_found;
-            status_text = fail_status;
-            context = { data: { 'result': output }, message: message_text, status: status_text };
-            res.send(context);
-            return;
-        }
-        var context = { data: { live_packing: response }, status: success_status };
-        res.json(context);
-        return
-    })
+    try {
+        var restaurant_id = req.query.restaurant_id;
+        live_data_model.get_live_packing_data(restaurant_id, function (err, response) {
+            if (err) {
+                handleError("Error occured while getting value from live_data_model.get_sales_data" + err);
+                message_text = no_data_found;
+                status_text = fail_status;
+                context = { data: { 'result': output }, message: message_text, status: status_text };
+                res.send(context);
+                return;
+            }
+            var context = { data: { live_packing: response }, status: success_status };
+            res.json(context);
+            return
+
+        })
+    } catch (ex) {
+        general.genericError("live_dataq_api.js :: get_volume_plan_data: " + ex);
+        message_text = no_data_found;
+        status_text = fail_status;
+        context = { data: { 'result': '' }, message: message_text, status: status_text };
+        res.send(context);
+        return;
+    }
 })
 
 app.listen('9090', function () {

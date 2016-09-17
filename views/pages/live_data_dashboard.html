@@ -1,8 +1,8 @@
 {{#yield-body}}
 <br/>
-<div class="row" id='main_row' data-restaurant_id={{restaurant_id}} data-restaurant_name="{{restaurant_name}}">
+<div class="row" id='main_row' data-short_name={{restaurant_short_name}} data-restaurant_id={{restaurant_id}} data-restaurant_name="{{restaurant_name}}">
   <div class="small-12 small-centered columns">
-    <img src="images/Freshly.png" alt="" />
+    <img id="restaurant_img" src="" alt="" />
     <!-- Replace with the Respective Customer Logo -->
   </div>
 </div>
@@ -11,7 +11,7 @@
   <div class="small-12 small-centered large-12 large-centered column">
 
     <ul class="tabs expanded" data-tabs id="example-tabs">
-      <li class="tabs-title is-active"><a id="pnl_volume_plan" href="#panel1" aria-selected="true">Volume Plan</a></li>
+      <li class="tabs-title is-active"><a id="volume_plan" href="#panel1" aria-selected="true">Volume Plan</a></li>
       <li class="tabs-title"><a id='live_packing' href="#panel2">Packing</a></li>
       <li class="tabs-title"><a id='sales_live' href="#sales_live_panel">Sales Live</a></li>
       <li class="tabs-title"><a id="sales_summary" href="#panel4">Sales Summary</a></li>
@@ -20,10 +20,14 @@
     <div class="tabs-content" data-tabs-content="example-tabs">
       <div class="tabs-panel is-active" id="panel1">
         <!-- Replace with the Respective Customer Logo -->
-        <button class="button" id="btn_refresh" >Refresh</button>
+        <button  class="button" id="btn_refresh" >Refresh</button>
         <div id="volume_plan_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
       </div>
       <div class="tabs-panel" id="panel2">
+          <div class="expanded button-group">
+          <a class="button" id="Day_packing">Overall Day</a>
+          <a class="button" id="Session_packing">Session wise</a>
+        </div>
         <!-- Replace with the Respective Customer Logo -->
          <div id="live_packing_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
       </div>
@@ -70,8 +74,14 @@ table, th, td {
  {{#yield-scripts}}
 
 $(document).ready(function(){
-    get_volume_plan_data();
+    $('#btn_refresh').hide()
+    var short_name="{{restaurant_short_name}}"
+    var image_path = 'images/'+short_name+'.png';
+    $('#restaurant_img').attr("src", image_path)
 });
+$('#volume_plan').click(function(){
+    get_volume_plan_data();
+})
 
 $('#sold_taken').click(function(e){
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
@@ -140,19 +150,116 @@ main_array.push({name:key,data:data})
 })
 
 
+$('#Session_packing').click(function(e){
+$('#loader').show();
+var restaurant_id=$('#main_row').attr('data-restaurant_id')
+$.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
 
-$('#live_packing').click(function(e){
+var sum_of_session = _.chain(live_packing_data.session_wise_details)
+    .groupBy("session")
+    .map(function(value, key) {
+        return {
+            name: key,
+            total_packed: sum(_.pluck(value, "total_packed")),
+            total_unpacked:sum(_.pluck(value,"session_unpacked"))
+        }
+    })
+    .value();
+
+var main_data=[];
+
+var main_packed_array=[];
+var main_un_packed_array=[];
+var name_array=[];
+$.map(sum_of_session,function(item){
+name_array.push(item.name)
+var packed_array=[];
+var un_packed_array=[];
+packed_array.push(item.total_packed)
+un_packed_array.push(item.total_unpacked)
+main_un_packed_array.push(un_packed_array)
+main_packed_array.push(packed_array)
+})
+
+main_data.push({name:'packed',data:main_packed_array})
+main_data.push({name:'unpacked',data:main_un_packed_array})
+
+ $('#live_packing_container').highcharts({
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Packing Status'
+        },
+        xAxis: {
+            categories: name_array
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'Total Items'
+            },
+            stackLabels: {
+                enabled: true,
+                style: {
+                    fontWeight: 'bold',
+                    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                }
+            }
+        },
+        tooltip: {
+            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+            shared: true
+        },
+        plotOptions: {
+            column: {
+                stacking: 'normal',
+                
+				dataLabels: {
+                    enabled: true,
+                    formatter:function() {
+                    var pcnt = (this.y /this.point.stackTotal) * 100;
+                    return Highcharts.numberFormat(pcnt) + '%';
+                },
+                }
+            }
+        },
+        series: main_data
+    });
+
+	$('#loader').hide();
+})
+  .fail(function(xhr,err,jquery) {
+  	$('#loader').hide();
+    alert( xhr.responseText);
+  });
+})
+
+$('#Day_packing').click(function(e){
+$('#loader').show();
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
 $.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
 var total_quantity=0;
 var main_array=[];
 $.map(live_packing_data,function(item,key){
+if(key!='session_wise_details'){
 var data=[];
 total_quantity+=item
 data.push(item)
 main_array.push({name:key,data:data})
+}
 })
- 
+ draw_live_packing_chart(main_array,total_quantity)
+	$('#loader').hide();
+})
+  .fail(function(xhr,err,jquery) {
+  	$('#loader').hide();
+    alert( xhr.responseText);
+  });
+})
+
+function draw_live_packing_chart(main_array,total_quantity){
+
   $('#live_packing_container').highcharts({
         chart: {
             type: 'column'
@@ -195,12 +302,8 @@ main_array.push({name:key,data:data})
         },
         series: main_array
     });
-	
-})
-  .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText);
-  });
-})
+
+}
 
 $('#sales_summary').click(function(){
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
