@@ -12,7 +12,7 @@ var mailer = require('../utils/mail_helper')
 var live_data_model = require('../models/live_data_model')
 var request = require('request')
 
-var api_url = 'http://localhost:9090/';
+var api_url = process.env.Service_Uri || 'http://localhost:9090/';
 
 router.get('/', function (req, res, next) {
     console.log("************************ called")
@@ -20,7 +20,7 @@ router.get('/', function (req, res, next) {
         title: 'Foodbox'
     };
     var cookie = req.cookies.login_details;
-    
+
     if (cookie != undefined) {
         var context = {
             title: 'Foodbox',
@@ -100,7 +100,7 @@ router.get('/check_credential', function (req, res) {
 
                 var cookie = req.cookies.login_details;
                 if (cookie === undefined) {
-                    res.cookie('login_details', { restaurant_id: info.data.restaurant_id, restaurant_name: info.data.restaurant_name, firebase_url: info.data.firebase_url,  restaurant_short_name: info.data.short_name }, { maxAge: 7*24*60*60*1000, httpOnly: true });
+                    res.cookie('login_details', { restaurant_id: info.data.restaurant_id, restaurant_name: info.data.restaurant_name, firebase_url: info.data.firebase_url, restaurant_short_name: info.data.short_name }, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: true });
                     console.log('cookie created successfully');
                 }
 
@@ -136,7 +136,11 @@ router.get('/get_live_sales_data', function (req, res) {
     request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var info = JSON.parse(body)
-            res.send({ sales_data: info.data.live_sales_data.sales_data, taken_data: info.data.live_sales_data.taken_data })
+            if (info.status !='FAIL') {
+                res.send({ sales_data: info.data.live_sales_data.sales_data, taken_data: info.data.live_sales_data.taken_data })
+            }else{
+                res.status(500).send({ error: 'No data found ' + error.errno });
+            }
         }
         if (error) {
             res.status(500).send({ error: 'Something failed ' + error.errno });

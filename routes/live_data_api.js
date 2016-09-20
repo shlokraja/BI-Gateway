@@ -210,7 +210,7 @@ app.get('/get_sales_summary', function (req, res) {
 
         live_data_model.get_sales_summary(restaurant_id, function (err, response) {
             if (err) {
-                handleError("Error occured while getting value from live_data_model.get_sales_data" + err);
+                handleError("Error occured while getting value from live_data_model.get_sales_summary" + err);
                 message_text = no_data_found;
                 status_text = fail_status;
                 context = { data: { 'result': output }, message: message_text, status: status_text };
@@ -235,9 +235,10 @@ app.get('/get_sales_summary', function (req, res) {
 app.get('/get_live_packing_data', function (req, res) {
     try {
         var restaurant_id = req.query.restaurant_id;
+        
         live_data_model.get_live_packing_data(restaurant_id, function (err, response) {
             if (err) {
-                handleError("Error occured while getting value from live_data_model.get_sales_data" + err);
+                handleError("Error occured while getting value from live_data_model.get_live_packing_data" + err);
                 message_text = no_data_found;
                 status_text = fail_status;
                 context = { data: { 'result': output }, message: message_text, status: status_text };
@@ -260,7 +261,7 @@ app.get('/get_live_packing_data', function (req, res) {
 })
 
 app.listen('9090', function () {
-    general.genericError('Example router listening on port 9091!');
+    general.genericError('Example router listening on port 9090!');
 });
 
 module.exports = app;

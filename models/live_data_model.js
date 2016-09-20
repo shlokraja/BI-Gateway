@@ -42,15 +42,17 @@ var get_live_packing_data = function (restaurant_id, callback) {
                             var session_wise_details = [];
                             for (var key in data) {
                                 var session_wise_packed = 0;
-                                var x = _.where(total_live_count.rows, { id: parseInt(key) });
-                                var po_id = key;
-                                var val = data[key];
-                                _.map(_.pluck(val, 'barcodes'), function (barcode) {
-                                    session_wise_packed += Object.keys(barcode).length;
-                                })
-                                overall_packed += session_wise_packed
-                                session_unpacked = x[0].total_quantity - session_wise_packed
-                                session_wise_details.push({ po_id: po_id, session: x[0].session_name, total_packed: session_wise_packed, session_unpacked: session_unpacked })
+                                var current_po = _.where(total_live_count.rows, { id: parseInt(key) });
+                                if (current_po[0] != undefined) {
+                                    var po_id = key;
+                                    var val = data[key];
+                                    _.map(_.pluck(val, 'barcodes'), function (barcode) {
+                                        session_wise_packed += Object.keys(barcode).length;
+                                    })
+                                    overall_packed += session_wise_packed
+                                    session_unpacked = current_po[0].total_quantity - session_wise_packed
+                                    session_wise_details.push({ po_id: po_id, session: current_po[0].session_name, total_packed: session_wise_packed, session_unpacked: session_unpacked })
+                                }
                             }
 
                             var unpacked = total_quantity - overall_packed;
@@ -202,7 +204,7 @@ var get_sales_data = function (restaurant_id, callback) {
         }
         client.query('select sum(batch.quantity) as taken from purchase_order po \
                      inner join purchase_order_batch batch on batch.purchase_order_id=po.id \
-                    where po.restaurant_id=$1 and received_time::date=now()::date'
+                    where po.restaurant_id=$1 and batch.received_time::date=now()::date'
             , [restaurant_id],
             function (query_err, taken_result) {
                 done();
