@@ -86,15 +86,6 @@ $('#volume_plan').click(function(){
 $('#sold_taken').click(function(e){
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
 $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live) {
-if(sales_live.sales_data.length<=0)
-{
- $.alert({
-            title: 'Notification!',
-            content: 'No data for current date',
-        });
-}
-
-
 var total_quantity=0;
 $.map(sales_live.sales_data,function(item){
 total_quantity+=parseInt(item.qty);
@@ -163,14 +154,6 @@ $('#Session_packing').click(function(e){
 $('#loader').show();
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
 $.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
-
-if(live_packing_data.overall_packed==0 &&live_packing_data.session_wise_details.length<=0)
-{
- $.alert({
-            title: 'Notification!',
-            content: 'No data for current date',
-        });
-}
 
 var sum_of_session = _.chain(live_packing_data.session_wise_details)
     .groupBy("session")
@@ -256,15 +239,6 @@ $('#Day_packing').click(function(e){
 $('#loader').show();
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
 $.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
-
-if(live_packing_data.overall_packed==0 &&live_packing_data.session_wise_details.length<=0)
-{
- $.alert({
-            title: 'Notification!',
-            content: 'No data for current date',
-        });
-}
-
 var total_quantity=0;
 var main_array=[];
 $.map(live_packing_data,function(item,key){
@@ -359,14 +333,6 @@ table_body+='<tr><td>'+ data.period+' </td><td style="text-align:right"> '+data.
 $('#Productwise').click(function(){
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
 $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live_data) {
-  
-   if(sales_live.sales_data==undefined)
-{
- $.alert({
-            title: 'Notification!',
-            content: 'No data for current date',
-        });
-}
 
 var productwise_wise_sum_of_sales = _.chain(sales_live_data.sales_data)
     .groupBy("food_item_name")
@@ -402,13 +368,7 @@ var food_item_wise_outlet= _.chain(sales_live_data.sales_data)
 $('#Outletwise').click(function(){
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
 $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live_data) {
- if(sales_live.sales_data==undefined)
-{
- $.alert({
-            title: 'Notification!',
-            content: 'No data for current date',
-        });
-}
+
 var outlet_wise_sum_of_sales = _.chain(sales_live_data.sales_data)
     .groupBy("outlet_name")
     .map(function(value, key) {
@@ -453,13 +413,7 @@ function get_volume_plan_data()
 {
 var restaurant_id=$('#main_row').attr('data-restaurant_id')
 $.get('get_volume_plan',{'restaurant_id':restaurant_id},  function(data) {
-   if(data.length<=0)
-{
- $.alert({
-            title: 'Notification!',
-            content: 'No data for current date',
-        });
-}
+ 
 var sum_of_session = _.chain(data)
     .groupBy("session")
     .map(function(value, key) {
