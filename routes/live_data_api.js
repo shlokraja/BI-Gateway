@@ -235,8 +235,9 @@ app.get('/get_sales_summary', function (req, res) {
 app.get('/get_live_packing_data', function (req, res) {
     try {
         var restaurant_id = req.query.restaurant_id;
-        
-        live_data_model.get_live_packing_data(restaurant_id, function (err, response) {
+        var firebase_url = req.query.firebase_url;
+
+        live_data_model.get_live_packing_data(restaurant_id,firebase_url, function (err, response) {
             if (err) {
                 handleError("Error occured while getting value from live_data_model.get_live_packing_data" + err);
                 message_text = no_data_found;
@@ -259,6 +260,34 @@ app.get('/get_live_packing_data', function (req, res) {
         return;
     }
 })
+
+app.get('/get_outlet_sales_data', function (req, res) {
+    try {
+        var outlet_id = req.query.outlet_id;
+        
+        live_data_model.get_outlet_sales_data(outlet_id, function (err, response) {
+            if (err) {
+                handleError("Error occured while getting value from live_data_model.get_outlet_sales_data" + err);
+                message_text = no_data_found;
+                status_text = fail_status;
+                context = { data: { 'result': output }, message: message_text, status: status_text };
+                res.send(context);
+                return;
+            }
+            var context = { data: { outlet_live_sales_data: response }, status: success_status };
+            res.json(context);
+            return
+        })
+    } catch (ex) {
+        general.genericError("live_data_api.js :: get_outlet_sales_data: " + ex);
+        message_text = no_data_found;
+        status_text = fail_status;
+        context = { data: { 'result': '' }, message: message_text, status: status_text };
+        res.send(context);
+        return;
+    }
+})
+
 
 app.listen('9090', function () {
     general.genericError('Example router listening on port 9090!');

@@ -17,13 +17,13 @@ var api_url = process.env.Service_Uri || 'http://localhost:9090/';
 router.get('/', function (req, res, next) {
     console.log("************************ called")
     var context = {
-        title: 'Foodbox'
+        title: ''
     };
     var cookie = req.cookies.login_details;
 
     if (cookie != undefined) {
         var context = {
-            title: 'Foodbox',
+            title: '',
             restaurant_id: cookie.restaurant_id,
             restaurant_name: cookie.restaurant_name,
             restaurant_short_name: cookie.restaurant_short_name
@@ -42,7 +42,7 @@ router.get('/get_sign_up', function (req, res, next) {
         if (!error && response.statusCode == 200) {
             var info = JSON.parse(body)
             var context = {
-                title: 'Foodbox',
+                title: '',
                 restaurants: info.data.restaurants,
                 city: info.data.city
             }
@@ -86,13 +86,13 @@ router.get('/check_credential', function (req, res) {
             var info = JSON.parse(body)
             if (info.status == "FAIL") {
                 var context = {
-                    title: 'Foodbox',
+                    title: '',
                     err: info.message_text
                 }
                 res.render('pages/live_data_login', context);
             } else {
                 var context = {
-                    title: 'Foodbox',
+                    title: '',
                     restaurant_id: info.data.restaurant_id,
                     restaurant_name: info.data.restaurant_name,
                     restaurant_short_name: info.data.short_name
@@ -112,7 +112,7 @@ router.get('/check_credential', function (req, res) {
             res.status(500).send({ error: 'Something failed ' + error.errno });
         }
     })
-});
+})
 
 //By default current date
 router.get('/get_volume_plan', function (req, res) {
@@ -136,9 +136,9 @@ router.get('/get_live_sales_data', function (req, res) {
     request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var info = JSON.parse(body)
-            if (info.status !='FAIL') {
+            if (info.status != 'FAIL') {
                 res.send({ sales_data: info.data.live_sales_data.sales_data, taken_data: info.data.live_sales_data.taken_data })
-            }else{
+            } else {
                 res.status(500).send({ error: 'No data found ' + error.errno });
             }
         }
@@ -165,17 +165,21 @@ router.get('/get_sales_summary', function (req, res) {
 
 router.get('/live_packing_data', function (req, res) {
     var restaurant_id = req.query.restaurant_id;
-
-    var url = api_url + 'get_live_packing_data?restaurant_id=' + restaurant_id;
-    request(url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            var info = JSON.parse(body)
-            res.send(info.data.live_packing)
-        }
-        if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.message });
-        }
-    })
+    var cookie = req.cookies.login_details;
+    if (cookie != undefined) {
+        var url = api_url + 'get_live_packing_data?restaurant_id=' + cookie.restaurant_id+'&firebase_url='+cookie.firebase_url;
+        request(url, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var info = JSON.parse(body)
+                res.send(info.data.live_packing)
+            }
+            if (error) {
+                res.status(500).send({ error: 'Something failed ' + error.message });
+            }
+        })
+    } else {
+        res.render('pages/live_data_login', context);
+    }
 })
 
 module.exports = router;

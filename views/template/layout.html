@@ -56,18 +56,16 @@
       }
     }
     
-    {
-      {
-        {
-          yield-styles
-        }
-      }
-    }
+    {{{yield-styles}}}
   </style>
 </head>
 
 <body>
-
+<div class="row">
+        <div class="large-12 columns nav-bar left">
+            <img style="height: 100px;width: 235px; float:left;" src="/images/frshlylogo.png" />
+        </div>
+    </div>
   <div class="row header">
     <div class="large-12 columns">
       <div class="nav-bar right">
@@ -76,13 +74,6 @@
       {{{yield-loginlogout}}}
       <hr />
     </div>
-  </div>
-
-  <div id="loader" class="loading">
-    <div class="loading-bar"></div>
-    <div class="loading-bar"></div>
-    <div class="loading-bar"></div>
-    <div class="loading-bar"></div>
   </div>
 
   {{{yield-body}}}
@@ -98,18 +89,14 @@
   <script src='./js/vendor/underscore.js'></script>
   <script src='./js/vendor/what-input.js'></script>
   <script src='./js/vendor/highcharts.js'></script>
-  <script src='./js/vendor/highcharts-3d.js'></script>
-  <script src='./js/vendor/data.js'></script>
   <script src='./js/vendor/drilldown.js'></script>
-
+  <script src='./js/vendor/jquery.blockUI.js'></script>
   <script>
   
-    $(document).ready(function () {
-        $('#loader').hide()
-    });
-    $(document).foundation();
-
-    
+    $(document).foundation();     
+    $.blockUI({ message: '<h2>Just a moment...</h2>' });
+    $.unblockUI();
+    $(document).ajaxStart($.blockUI).ajaxStop($.unblockUI);
 
     {{{yield-scripts}}}
     </script> {{{yield-tags}}}

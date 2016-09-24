@@ -431,7 +431,7 @@ var session_data = _.chain(data)
         _.map(value,function(x){
         var datas=[];
         datas.push(x.name)
-        datas.push(x.qty)
+        datas.push(parseInt(x.qty))
          data.push(datas)
         })
         return {name:key,id:key,data};
@@ -474,7 +474,8 @@ function draw_chart(container,title_text,sum_of_session,session_data)
             series: {
                 borderWidth: 0,
                 dataLabels: {
-                    enabled: true
+                    enabled: true,
+                    format: '{point.y}'
                 }
             }
         },

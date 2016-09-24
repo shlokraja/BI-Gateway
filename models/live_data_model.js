@@ -9,7 +9,8 @@ var format = require('string-format');
 format.extend(String.prototype);
 var Firebase = require('firebase');
 
-var get_live_packing_data = function (restaurant_id, callback) {
+
+var get_live_packing_data = function (restaurant_id, firebase_url, callback) {
     pg.connect(conString, function (err, client, done) {
         if (err) {
             return callback(new Error(err, null));
@@ -26,41 +27,38 @@ var get_live_packing_data = function (restaurant_id, callback) {
                     return callback(new Error(query_err, null));
                 }
                 if (total_live_count.rows) {
-                    get_restaurant_details(restaurant_id, function (err, restaurant_details) {
-                        var total_quantity = 0;
-                        _.map(total_live_count.rows, function (item) {
-                            total_quantity += parseInt(item.total_quantity)
-                        })
-
-                        var rootref = new Firebase(restaurant_details.firebase_url);
-                        var overall_packed = 0
-                        var live_packing_data = rootref.child('{}/'.format(restaurant_id));
-                        var item_data = [];
-                        // Getting the stock data
-                        live_packing_data.once("value", function (data) {
-                            var data = data.val();
-                            var session_wise_details = [];
-                            for (var key in data) {
-                                var session_wise_packed = 0;
-                                var current_po = _.where(total_live_count.rows, { id: parseInt(key) });
-                                if (current_po[0] != undefined) {
-                                    var po_id = key;
-                                    var val = data[key];
-                                    _.map(_.pluck(val, 'barcodes'), function (barcode) {
-                                        session_wise_packed += Object.keys(barcode).length;
-                                    })
-                                    overall_packed += session_wise_packed
-                                    session_unpacked = current_po[0].total_quantity - session_wise_packed
-                                    session_wise_details.push({ po_id: po_id, session: current_po[0].session_name, total_packed: session_wise_packed, session_unpacked: session_unpacked })
-                                }
-                            }
-
-                            var unpacked = total_quantity - overall_packed;
-                            var context = { overall_packed: overall_packed, unpacked: unpacked, session_wise_details: session_wise_details }
-                            return callback(null, context);
-                        });
+                    var total_quantity = 0;
+                    _.map(total_live_count.rows, function (item) {
+                        total_quantity += parseInt(item.total_quantity)
                     })
 
+                    var rootref = new Firebase(firebase_url);
+                    var overall_packed = 0
+                    var live_packing_data = rootref.child('{}/'.format(restaurant_id));
+                    var item_data = [];
+                    // Getting the stock data
+                    live_packing_data.once("value", function (data) {
+                        var data = data.val();
+                        var session_wise_details = [];
+                        for (var key in data) {
+                            var session_wise_packed = 0;
+                            var current_po = _.where(total_live_count.rows, { id: parseInt(key) });
+                            if (current_po[0] != undefined) {
+                                var po_id = key;
+                                var val = data[key];
+                                _.map(_.pluck(val, 'barcodes'), function (barcode) {
+                                    session_wise_packed += Object.keys(barcode).length;
+                                })
+                                overall_packed += session_wise_packed
+                                session_unpacked = current_po[0].total_quantity - session_wise_packed
+                                session_wise_details.push({ po_id: po_id, session: current_po[0].session_name, total_packed: session_wise_packed, session_unpacked: session_unpacked })
+                            }
+                        }
+
+                        var unpacked = total_quantity - overall_packed;
+                        var context = { overall_packed: overall_packed, unpacked: unpacked, session_wise_details: session_wise_details }
+                        return callback(null, context);
+                    });
                 } else {
                     return callback(new Error("No data found"));
                 }
@@ -75,12 +73,13 @@ var get_session_data = function (restaurant_id, callback) {
             return callback(new Error(err, null));
         }
         client.query(
-            "select vpa.restaurant_id,food_item_id,fi.name,qty,session,po_id,master_fooditem_id,session_start,city_id \
-            from volume_plan_automation vpa \
-            inner join food_item fi on fi.id=vpa.food_item_id \
-            inner join session ses on ses.name=vpa.session \
-            where vpa.restaurant_id = $1 and vpa.date = current_date \
-            order by ses.sequence",
+            "select sum(vpa.qty)::numeric as qty, trim(fi.name) as name,vpa.session \
+from volume_plan_automation vpa \
+inner join food_item fi on fi.id=vpa.food_item_id \
+inner join session ses on ses.name=vpa.session \
+where vpa.restaurant_id = $1 and vpa.date = current_date \
+group by  trim(fi.name),vpa.session,ses.sequence \
+order by ses.sequence",
             [restaurant_id],
             function (query_err, restaurant) {
                 done();
@@ -228,7 +227,7 @@ var get_sales_data = function (restaurant_id, callback) {
                             if (query_err) {
                                 return callback(query_err, null)
                             }
-                            if (sales_data.rows) {
+                            if (sales_data.rows.length>0) {
                                 return callback(null, { taken_data: taken_result.rows[0].taken, sales_data: sales_data.rows })
                             } else {
                                 return callback(new Error('No data found'))
@@ -284,7 +283,7 @@ var get_sales_summary = function (restaurant_id, callback) {
                 if (query_err) {
                     return callback(query_err, null)
                 }
-                if (get_sales_summary.rows) {
+                if (get_sales_summary.rows.length>0) {
                     return callback(null, get_sales_summary.rows)
                 } else {
                     return callback(new Error('No data found'))
@@ -316,6 +315,54 @@ var get_restaurant_details = function (restaurant_id, callback) {
     })
 }
 
+
+
+var get_outlet_sales_data = function (outlet_id, callback) {
+    pg.connect(conString, function (err, client, done) {
+        if (err) {
+            return callback(err, null)
+        }
+        client.query('select sum(batch.quantity) as taken from purchase_order po \
+                     inner join purchase_order_batch batch on batch.purchase_order_id=po.id \
+                    where po.outlet_id=$1 and batch.received_time::date=now()::date'
+            , [outlet_id],
+            function (query_err, taken_result) {
+                done();
+                if (query_err) {
+                    return callback(query_err, null)
+                }
+                if (taken_result) {
+                    client.query(
+                        "select \
+                        sum(soi.quantity) as qty,out.name as outlet_name, \
+                        fi.name as food_item_name,res.name as restaurant_name from sales_order so \
+                        inner join sales_order_items soi on soi.sales_order_id=so.id \
+                        inner join food_item fi on fi.id=soi.food_item_id \
+                        inner join outlet out on  out.id=so.outlet_id \
+                        inner join restaurant res on res.id=fi.restaurant_id \
+                        where  out.id=$1 and time::date=now()::date \
+                        group by so.outlet_id,out.name,soi.food_item_id,fi.name,res.name \
+                        order by out.name  ",
+                        [outlet_id],
+                        function (query_err, outlet_sales_data) {
+                            done();
+                            if (query_err) {
+                                return callback(query_err, null)
+                            }
+                            if (outlet_sales_data.rows.length>0) {
+                                return callback(null, { taken_data: taken_result.rows[0].taken, outlet_sales_data: outlet_sales_data.rows })
+                            } else {
+                                return callback(new Error('No data found'))
+                            }
+                        });
+                }
+            })
+
+    });
+};
+
+
+
 module.exports = {
     get_live_packing_data: get_live_packing_data,
     get_session_data: get_session_data,
@@ -324,5 +371,6 @@ module.exports = {
     update_pin_to_restaurant: update_pin_to_restaurant,
     check_credentials: check_credentials,
     get_sales_data: get_sales_data,
-    get_sales_summary: get_sales_summary
+    get_sales_summary: get_sales_summary,
+    get_outlet_sales_data:get_outlet_sales_data
 }
