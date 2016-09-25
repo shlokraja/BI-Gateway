@@ -139,7 +139,7 @@ router.get('/get_live_sales_data', function (req, res) {
             if (info.status != 'FAIL') {
                 res.send({ sales_data: info.data.live_sales_data.sales_data, taken_data: info.data.live_sales_data.taken_data })
             } else {
-                res.status(500).send({ error: 'No data found ' + error.errno });
+                res.status(500).send({ error: 'No data found ' + error });
             }
         }
         if (error) {

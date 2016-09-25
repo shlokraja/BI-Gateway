@@ -6,77 +6,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{title}}</title>
   <link href="/css/vendor/jquery-confirm.css" rel="stylesheet" />
-  <link href="/css/vendor/foundation.css" rel="stylesheet" />
+  <link href="/css/foundation.css" rel="stylesheet" />
   <link href="/css/app.css" rel="stylesheet" />
   <style>
-    .loading {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      z-index: 1000;
-    }
-    
-    .loading-bar {
-      display: inline-block;
-      width: 6px;
-      height: 35px;
-      border-radius: 4px;
-      animation: loading 1s ease-in-out infinite;
-    }
-    
-    .loading-bar:nth-child(1) {
-      background-color: #3498db;
-      animation-delay: 0;
-    }
-    
-    .loading-bar:nth-child(2) {
-      background-color: #c0392b;
-      animation-delay: 0.09s;
-    }
-    
-    .loading-bar:nth-child(3) {
-      background-color: #f1c40f;
-      animation-delay: .18s;
-    }
-    
-    .loading-bar:nth-child(4) {
-      background-color: #27ae60;
-      animation-delay: .27s;
-    }
-    
-    @keyframes loading {
-      0% {
-        transform: scale(1);
-      }
-      20% {
-        transform: scale(1, 2.2);
-      }
-      40% {
-        transform: scale(1);
-      }
-    }
-    
+       
     {{{yield-styles}}}
   </style>
 </head>
 
 <body>
-<div class="row">
-        <div class="large-12 columns nav-bar left">
-            <img style="height: 100px;width: 235px; float:left;" src="/images/frshlylogo.png" />
-        </div>
-    </div>
-  <div class="row header">
-    <div class="large-12 columns">
-      <div class="nav-bar right">
+<section id="header">
+      <div class="row">
+         <div class="small-12 columns">
+             <img src="/images/frshly-logo.png">
+         </div>
       </div>
-      <h1><a class="header-theme" href="/">{{title}}</a></h1>
-      {{{yield-loginlogout}}}
-      <hr />
-    </div>
-  </div>
-
-  {{{yield-body}}}
+   </section>
+    {{{yield-loginlogout}}}
+    {{{yield-body}}}
 
   <footer class="row">
     <div class="large-12 columns">

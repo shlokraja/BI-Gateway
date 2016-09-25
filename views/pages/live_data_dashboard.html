@@ -1,496 +1,615 @@
-{{#yield-body}}
-<br/>
-<div class="row" id='main_row' data-short_name={{restaurant_short_name}} data-restaurant_id={{restaurant_id}} data-restaurant_name="{{restaurant_name}}">
-  <div class="small-12 small-centered columns">
-    <img id="restaurant_img" src="" alt="" />
-    <!-- Replace with the Respective Customer Logo -->
-  </div>
-</div>
-<br/>
-<div class="row">
-  <div class="small-12 small-centered large-12 large-centered column">
-
-    <ul class="tabs expanded" data-tabs id="example-tabs">
-      <li class="tabs-title is-active"><a id="volume_plan" href="#panel1" aria-selected="true">Volume Plan</a></li>
-      <li class="tabs-title"><a id='live_packing' href="#panel2">Packing</a></li>
-      <li class="tabs-title"><a id='sales_live' href="#sales_live_panel">Sales Live</a></li>
-      <li class="tabs-title"><a id="sales_summary" href="#panel4">Sales Summary</a></li>
-    </ul>
-
-    <div class="tabs-content" data-tabs-content="example-tabs">
-      <div class="tabs-panel is-active" id="panel1">
-        <!-- Replace with the Respective Customer Logo -->
-        <button  class="button" id="btn_refresh" >Refresh</button>
-        <div id="volume_plan_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
-      </div>
-      <div class="tabs-panel" id="panel2">
-          <div class="expanded button-group">
-          <a class="button" id="Day_packing">Overall Day</a>
-          <a class="button" id="Session_packing">Session wise</a>
+﻿{{#yield-body}}
+<section id="customer-container">
+    <div class="row" id='main_row' data-short_name={{restaurant_short_name}} data-restaurant_id={{restaurant_id}} data-restaurant_name="{{restaurant_name}}">
+        <div class="small-12 small-centered columns">
+            <img id="restaurant_img" src="/images/AJP.png" alt="" />
+            <!-- Replace with the Respective Customer Logo -->
         </div>
-        <!-- Replace with the Respective Customer Logo -->
-         <div id="live_packing_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
-      </div>
-      <div class="tabs-panel" id="sales_live_panel">
-        <!-- Replace with the Respective Customer Logo -->
-
-        <div class="expanded button-group">
-          <a class="button" id="sold_taken">Sales Live</a>
-          <a class="button" id="Outletwise">Outlet wise</a>
-          <a class="button" id="Productwise">Product wise</a>
+    </div>
+</section>
+<section id="menu" class="hide-for-small-only">
+    <div class="row">
+        <ul class="tabs" data-tabs id="example-tabs">
+            <li class="tabs-title is-active"><a id="volume_plan" class="volume_plan" href="#panel1" aria-selected="true">Plan</a></li>
+            <li class="tabs-title"><a class="Day_packing"  id='live_packing' href="#panel2">Packing</a></li>
+            <li class="tabs-title"><a class="sold_taken" id='sales_live' href="#panel3">Sales</a></li>
+            <li class="tabs-title"><a  class="sales_summary" id="sales_summary" href="#panel4">Summary</a></li>
+        </ul>
+    </div>
+</section>
+<section id="menu-content" class="hide-for-small-only">
+    <div class="row">
+        <div class="tabs-content" data-tabs-content="example-tabs">
+            <div class="tabs-panel is-active" id="panel1">
+                <!-- Replace with the Respective Customer Logo -->
+                <button class="button" id="btn_refresh">Refresh</button>
+                <div id="volume_plan_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+            </div>
+            <div class="tabs-panel" id="panel2">
+                <div class="expanded button-group">
+                    <a class="button Day_packing" id="Day_packing">Overall Day</a>
+                    <a class="button Session_packing active" id="Session_packing">Session wise</a>
+                </div>
+                <!-- Replace with the Respective Customer Logo -->
+                <div class="live_packing_container" id="live_packing_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+            </div>
+            <div class="tabs-panel" id="panel3">
+                <!-- Replace with the Respective Customer Logo -->
+                <div class="expanded button-group">
+                    <a class="button sold_taken" id="sold_taken">Sales Live</a>
+                    <a class="button Outletwise active" id="Outletwise">Outlet wise</a>
+                    <a class="button Productwise active" id="Productwise">Product wise</a>
+                </div>
+                <div class="live_sales_container" id="live_sales_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+            </div>
+            <div class="tabs-panel" id="panel4">
+                <section id="content">
+                    <div class="row">
+                        <div class="small-12 columns">
+                            <div>
+                                <!-- Replace with the Respective Customer Logo -->
+                                <table cellpadding="0" cellspacing="0" border="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Period</th>
+                                            <th>Sales</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sales_summary_container"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </div>
-        <div id="live_sales_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
-      </div>
-      <div class="tabs-panel" id="panel4">
+    </div>
+</section>
+<section class="show-for-small-only">
+    <div class="title-bar" data-responsive-toggle="example-menu" data-hide-for="medium">
+        <button class="menu-icon" type="button" data-toggle></button>
+    </div>
+
+    <div class="top-bar" id="example-menu">
+        <div class="top-bar-left">
+            <ul class="dropdown menu" data-dropdown-menu>
+                <li><a id="volume_plan" class="volume_plan" href="#">Plan</a></li>
+                <li>
+                    <a  href="#">Packing</a>
+                    <ul class="menu vertical">
+                        <li><a class="Day_packing" id="Day_packing">Overall Day</a></li>
+                        <li><a class="Session_packing" id="Session_packing">Session Wise</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#">Sales</a>
+                    <ul class="menu vertical">
+                        <li><a class="sold_taken" id="sold_taken">Sales Live</a></li>
+                        <li><a  class="Outletwise" id="Outletwise">Outlet Wise</a></li>
+                        <li><a class="Productwise" id="Productwise">Product Wise</a></li>
+                    </ul>
+                </li>
+                <li><a id="sales_summary" href="#" class="sales_summary">Summary</a></li>
+            </ul>
+        </div>
+
+    </div>
+</section>
+<section class="show-for-small-only">
+    <div id="volume_summary_div">
         <!-- Replace with the Respective Customer Logo -->
-        <table border='2'>
+        <div id="volume_plan_container_mobile" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+    </div>
+    <div id="packing_summary_div"><div class="live_packing_container" id="live_packing_container_mobile"  style="min-width: 310px; height: 400px; margin: 0 auto"></div></div>
+    <div id="live_sales_summary_div"><div class="live_sales_container" id="live_sales_container_mobile"  style="min-width: 310px; height: 400px; margin: 0 auto"></div></div>
+    <div id="sales_summary_div">
+        <!-- Replace with the Respective Customer Logo -->
+        <table cellpadding="0" cellspacing="0" border="0">
             <thead>
                 <tr>
-                     <th width="200">Period</th>
-                     <th width="200">Sales Rs</th>
+                    <th>Period</th>
+                    <th>Sales</th>
                 </tr>
             </thead>
-            <tbody id="sales_summary_container">
-            </tbody>
+            <tbody id="sales_summary_container_mobile"></tbody>
         </table>
-      </div>
     </div>
-  </div>
-</div>
+</section>
 
-{{/yield-body}} 
+{{/yield-body}}
 
 {{#yield-styles}}
 
-table {
-    border-collapse: collapse !important;
-}
+{{/yield-styles}}
 
-table, th, td {
-    border: 1px solid black !important;
-}
- {{/yield-styles}}
+{{#yield-scripts}}
 
- {{#yield-scripts}}
-
-$(document).ready(function(){
+    $(document).ready(function(){
     $('#btn_refresh').hide()
+    mobile_hide();
+    get_volume_plan_data();
     var short_name="{{restaurant_short_name}}"
     var image_path = 'images/'+short_name+'.png';
     $('#restaurant_img').attr("src", image_path)
-});
-$('#volume_plan').click(function(){
-    get_volume_plan_data();
-})
-
-$('#sold_taken').click(function(e){
-var restaurant_id=$('#main_row').attr('data-restaurant_id')
-$.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live) {
-var total_quantity=0;
-$.map(sales_live.sales_data,function(item){
-total_quantity+=parseInt(item.qty);
-})
-var unsold=parseInt(sales_live.taken_data)-total_quantity;
-var new_data={Sold:total_quantity,Unsold:unsold}
-var main_array=[];
-$.map(new_data,function(item,key){
-var data=[];
-total_quantity+=item
-data.push(item)
-main_array.push({name:key,data:data})
-})
- 
-  $('#live_sales_container').highcharts({
-        chart: {
-            type: 'column'
-        },
-        title: {
-            text: 'Sales Live'
-        },
-        xAxis: {
-            categories: ['Food Item']
-        },
-        yAxis: {
-            min: 0,
-            title: {
-                text: 'Total Items'
-            },
-            stackLabels: {
-                enabled: true,
-                style: {
-                    fontWeight: 'bold',
-                    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
-                }
-            }
-        },
-        tooltip: {
-            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
-            shared: true
-        },
-        plotOptions: {
-            column: {
-                stacking: 'normal',
-                
-				dataLabels: {
-                    enabled: true,
-                    formatter:function() {
-                    var pcnt = (this.y /total_quantity) * 100;
-                    return Highcharts.numberFormat(pcnt) + '%';
-                },
-                }
-            }
-        },
-        series: main_array
     });
-    
-})
-  .fail(function(xhr,err,jquery) {
+    $('.volume_plan').click(function(){
+    mobile_hide();
+    get_volume_plan_data();
+    })
+
+    $('.sold_taken').click(function(e){
+    mobile_hide();
+    var restaurant_id=$('#main_row').attr('data-restaurant_id')
+    $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live) {
+    var total_quantity=0;
+    $('#live_sales_summary_div').show();
+    $.map(sales_live.sales_data,function(item){
+    total_quantity+=parseInt(item.qty);
+    })
+    var unsold=parseInt(sales_live.taken_data)-total_quantity;
+    var new_data={Sold:total_quantity,Unsold:unsold}
+    var main_array=[];
+    $.map(new_data,function(item,key){
+    var data=[];
+    total_quantity+=item
+    data.push(item)
+    main_array.push({name:key,data:data})
+    })
+
+    $('.live_sales_container').highcharts({
+    chart: {
+    type: 'column'
+    },
+    title: {
+    text: 'Sales Live'
+    },
+    xAxis: {
+    categories: ['Food Item']
+    },
+    yAxis: {
+    min: 0,
+    title: {
+    text: 'Total Items'
+    },
+    stackLabels: {
+    enabled: true,
+    style: {
+    fontWeight: 'bold',
+    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+    }
+    }
+    },
+    tooltip: {
+    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br />',
+    shared: true
+    },
+    plotOptions: {
+    column: {
+    stacking: 'normal',
+
+    dataLabels: {
+    enabled: true,
+    formatter:function() {
+    var pcnt = (this.y /total_quantity) * 100;
+    return Highcharts.numberFormat(pcnt) + '%';
+    },
+    }
+    }
+    },
+    series: main_array
+    });
+
+    })
+    .fail(function(xhr,err,jquery) {
     alert( xhr.responseText);
-  });
-})
+    });
+    })
 
 
-$('#Session_packing').click(function(e){
-$('#loader').show();
-var restaurant_id=$('#main_row').attr('data-restaurant_id')
-$.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
+    $('.Session_packing').click(function(e){
+    $('#loader').show();
+    mobile_hide();
+    $('#Day_packing').addClass('active');
+    $('#Session_packing').removeClass('active');
+    var restaurant_id=$('#main_row').attr('data-restaurant_id')
+    $.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
 
-var sum_of_session = _.chain(live_packing_data.session_wise_details)
+    var sum_of_session = _.chain(live_packing_data.session_wise_details)
     .groupBy("session")
     .map(function(value, key) {
-        return {
-            name: key,
-            total_packed: sum(_.pluck(value, "total_packed")),
-            total_unpacked:sum(_.pluck(value,"session_unpacked"))
-        }
+    return {
+    name: key,
+    total_packed: sum(_.pluck(value, "total_packed")),
+    total_unpacked:sum(_.pluck(value,"session_unpacked"))
+    }
     })
     .value();
 
-var main_data=[];
+    var main_data=[];
 
-var main_packed_array=[];
-var main_un_packed_array=[];
-var name_array=[];
-$.map(sum_of_session,function(item){
-name_array.push(item.name)
-var packed_array=[];
-var un_packed_array=[];
-packed_array.push(item.total_packed)
-un_packed_array.push(item.total_unpacked)
-main_un_packed_array.push(un_packed_array)
-main_packed_array.push(packed_array)
-})
+    var main_packed_array=[];
+    var main_un_packed_array=[];
+    var name_array=[];
+    $.map(sum_of_session,function(item){
+    name_array.push(item.name)
+    var packed_array=[];
+    var un_packed_array=[];
+    packed_array.push(item.total_packed)
+    un_packed_array.push(item.total_unpacked)
+    main_un_packed_array.push(un_packed_array)
+    main_packed_array.push(packed_array)
+    })
 
-main_data.push({name:'packed',data:main_packed_array})
-main_data.push({name:'unpacked',data:main_un_packed_array})
+    main_data.push({name:'packed',data:main_packed_array})
+    main_data.push({name:'unpacked',data:main_un_packed_array})
+    $('#packing_summary_div').show();
+    draw_live_session_packing_chart('live_packing_container',main_data,name_array)
+    draw_live_session_packing_chart('live_packing_container_mobile',main_data,name_array)
 
- $('#live_packing_container').highcharts({
-        chart: {
-            type: 'column'
-        },
-        title: {
-            text: 'Packing Status'
-        },
-        xAxis: {
-            categories: name_array
-        },
-        yAxis: {
-            min: 0,
-            title: {
-                text: 'Total Items'
-            },
-            stackLabels: {
-                enabled: true,
-                style: {
-                    fontWeight: 'bold',
-                    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
-                }
-            }
-        },
-        tooltip: {
-            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
-            shared: true
-        },
-        plotOptions: {
-            column: {
-                stacking: 'normal',
-                
-				dataLabels: {
-                    enabled: true,
-                    formatter:function() {
-                    var pcnt = (this.y /this.point.stackTotal) * 100;
-                    return Highcharts.numberFormat(pcnt) + '%';
-                },
-                }
-            }
-        },
-        series: main_data
+    $('#loader').hide();
+    })
+    .fail(function(xhr,err,jquery) {
+    $('#loader').hide();
+    alert( xhr.responseText);
+    });
+    })
+
+    $('.Day_packing').click(function(e){
+    $('#loader').show();
+    mobile_hide();
+    var restaurant_id=$('#main_row').attr('data-restaurant_id')
+    $.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
+    var total_quantity=0;
+    var main_array=[];
+    $.map(live_packing_data,function(item,key){
+    if(key!='session_wise_details'){
+    var data=[];
+    total_quantity+=item
+    data.push(item)
+    main_array.push({name:key,data:data})
+    }
+    })
+    draw_live_packing_chart('live_packing_container',main_array,total_quantity)
+    draw_live_packing_chart('live_packing_container_mobile',main_array,total_quantity)
+    $('#loader').hide();
+    })
+    .fail(function(xhr,err,jquery) {
+    $('#loader').hide();
+    alert( xhr.responseText);
+    });
+    })
+
+    function draw_live_packing_chart(container,main_array,total_quantity){
+    $('#packing_summary_div').show();
+    $('#'+container).highcharts({
+    chart: {
+    type: 'column'
+    },
+    title: {
+    text: 'Packing Status'
+    },
+    xAxis: {
+    categories: ['Food Item']
+    },
+    yAxis: {
+    min: 0,
+    title: {
+    text: 'Total Items'
+    },
+    stackLabels: {
+    enabled: true,
+    style: {
+    fontWeight: 'bold',
+    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+    }
+    }
+    },
+    tooltip: {
+    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br />',
+    shared: true
+    },
+    plotOptions: {
+    column: {
+    stacking: 'normal',
+
+    dataLabels: {
+    enabled: true,
+    formatter:function() {
+    var pcnt = (this.y /total_quantity) * 100;
+    return Highcharts.numberFormat(pcnt) + '%';
+    },
+    }
+    }
+    },
+    series: main_array
     });
 
-	$('#loader').hide();
-})
-  .fail(function(xhr,err,jquery) {
-  	$('#loader').hide();
-    alert( xhr.responseText);
-  });
-})
+    }
 
-$('#Day_packing').click(function(e){
-$('#loader').show();
-var restaurant_id=$('#main_row').attr('data-restaurant_id')
-$.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
-var total_quantity=0;
-var main_array=[];
-$.map(live_packing_data,function(item,key){
-if(key!='session_wise_details'){
-var data=[];
-total_quantity+=item
-data.push(item)
-main_array.push({name:key,data:data})
-}
-})
- draw_live_packing_chart(main_array,total_quantity)
-	$('#loader').hide();
-})
-  .fail(function(xhr,err,jquery) {
-  	$('#loader').hide();
-    alert( xhr.responseText);
-  });
-})
+    function draw_live_session_packing_chart(container,main_data,name_array){
+    $('#'+container).highcharts({
+    chart: {
+    type: 'column'
+    },
+    title: {
+    text: 'Packing Status'
+    },
+    xAxis: {
+    categories: name_array
+    },
+    yAxis: {
+    min: 0,
+    title: {
+    text: 'Total Items'
+    },
+    stackLabels: {
+    enabled: true,
+    style: {
+    fontWeight: 'bold',
+    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+    }
+    }
+    },
+    tooltip: {
+    pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br />',
+    shared: true
+    },
+    plotOptions: {
+    column: {
+    stacking: 'normal',
 
-function draw_live_packing_chart(main_array,total_quantity){
-
-  $('#live_packing_container').highcharts({
-        chart: {
-            type: 'column'
-        },
-        title: {
-            text: 'Packing Status'
-        },
-        xAxis: {
-            categories: ['Food Item']
-        },
-        yAxis: {
-            min: 0,
-            title: {
-                text: 'Total Items'
-            },
-            stackLabels: {
-                enabled: true,
-                style: {
-                    fontWeight: 'bold',
-                    color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
-                }
-            }
-        },
-        tooltip: {
-            pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
-            shared: true
-        },
-        plotOptions: {
-            column: {
-                stacking: 'normal',
-                
-				dataLabels: {
-                    enabled: true,
-                    formatter:function() {
-                    var pcnt = (this.y /total_quantity) * 100;
-                    return Highcharts.numberFormat(pcnt) + '%';
-                },
-                }
-            }
-        },
-        series: main_array
+    dataLabels: {
+    enabled: true,
+    formatter:function() {
+    var pcnt = (this.y /this.point.stackTotal) * 100;
+    return Highcharts.numberFormat(pcnt) + '%';
+    },
+    }
+    }
+    },
+    series: main_data
     });
+    }
+    $('.sales_summary').click(function(){
+    mobile_hide();
+    var restaurant_id=$('#main_row').attr('data-restaurant_id')
+    $.get('get_sales_summary',{'restaurant_id':restaurant_id}, function(sales_summary_data) {
 
-}
-
-$('#sales_summary').click(function(){
-var restaurant_id=$('#main_row').attr('data-restaurant_id')
-$.get('get_sales_summary',{'restaurant_id':restaurant_id}, function(sales_summary_data) {
-
-  var productwise_wise_sum_of_sales = _.chain(sales_summary_data)
+    var productwise_wise_sum_of_sales = _.chain(sales_summary_data)
     .groupBy("period")
     .map(function(value, key) {
-        return {
-            period: key,
-            sale:sum(_.pluck(value, "sale"))
-        }
+    return {
+    period: key,
+    sale:sum(_.pluck(value, "sale"))
+    }
     })
     .value();
 
-var table_body='';
-$.map(productwise_wise_sum_of_sales,function(data){
-table_body+='<tr><td>'+ data.period+' </td><td style="text-align:right"> '+data.sale.toFixed(2)+' </td></tr>'
-})
- $('#sales_summary_container').html(table_body)
-})
-  .fail(function(xhr,err,jquery) {
+    var table_body='';
+    $.map(productwise_wise_sum_of_sales,function(data){
+    table_body+='<tr><td>'+ data.period+' </td><td style="text-align:right"> ₹ '+addCommas(data.sale.toFixed(2))+' </td></tr>'
+    })
+    $('#sales_summary_div').show();
+    $('#sales_summary_container').html(table_body)
+    $('#sales_summary_container_mobile').html(table_body)
+   
+    })
+    .fail(function(xhr,err,jquery) {
     alert( xhr.responseText);
-  });
-})
+    });
+    })
 
-$('#Productwise').click(function(){
-var restaurant_id=$('#main_row').attr('data-restaurant_id')
-$.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live_data) {
+    $('.Productwise').click(function(){
+    mobile_hide();
+     $('#sold_taken').addClass('active');
+     $('#Outletwise').addClass('active');
+     $('#Productwise').removeClass('active');
+    var restaurant_id=$('#main_row').attr('data-restaurant_id')
+    
+    $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live_data) {
 
-var productwise_wise_sum_of_sales = _.chain(sales_live_data.sales_data)
+    var productwise_wise_sum_of_sales = _.chain(sales_live_data.sales_data)
     .groupBy("food_item_name")
     .map(function(value, key) {
-        return {
-            name: key,
-            qty: sum(_.pluck(value, "qty"))
-        }
+    return {
+    name: key,
+    qty: sum(_.pluck(value, "qty"))
+    }
     })
     .value();
 
-var food_item_wise_outlet= _.chain(sales_live_data.sales_data)
+    var food_item_wise_outlet= _.chain(sales_live_data.sales_data)
     .groupBy("food_item_name")
     .map(function(value, key) {
     var data=[];
-        _.map(value,function(x){
-        var datas=[];
-        datas.push(x.outlet_name)
-        datas.push( parseInt(x.qty))
-         data.push(datas)
-        })
-        return {name:key,id:key,data};
+    _.map(value,function(x){
+    var datas=[];
+    datas.push(x.outlet_name)
+    datas.push( parseInt(x.qty))
+    data.push(datas)
+    })
+    return {name:key,id:key,data};
     })
     .value();
-
- draw_chart('live_sales_container','Product wise details',productwise_wise_sum_of_sales,food_item_wise_outlet)
-})
-  .fail(function(xhr,err,jquery) {
+    $('#live_sales_container_mobile').show();
+    draw_chart('live_packing_container_mobile','Product wise details',productwise_wise_sum_of_sales,food_item_wise_outlet)
+    draw_chart('live_sales_container','Product wise details',productwise_wise_sum_of_sales,food_item_wise_outlet)
+    })
+    .fail(function(xhr,err,jquery) {
     alert( xhr.responseText);
-  });
-})
+    });
+    })
 
-$('#Outletwise').click(function(){
-var restaurant_id=$('#main_row').attr('data-restaurant_id')
-$.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live_data) {
+    $('.Outletwise').click(function(){
+    mobile_hide();
+    $('#sold_taken').addClass('active');
+     $('#Productwise').addClass('active');
+     $('#Outletwise').removeClass('active');
+    var restaurant_id=$('#main_row').attr('data-restaurant_id')
+    $('#live_sales_summary_div').show();
+    $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live_data) {
 
-var outlet_wise_sum_of_sales = _.chain(sales_live_data.sales_data)
+    var outlet_wise_sum_of_sales = _.chain(sales_live_data.sales_data)
     .groupBy("outlet_name")
     .map(function(value, key) {
-        return {
-            name: key,
-            qty: sum(_.pluck(value, "qty"))
-        }
+    return {
+    name: key,
+    qty: sum(_.pluck(value, "qty"))
+    }
     })
     .value();
 
-var outlet_wise_food_item = _.chain(sales_live_data.sales_data)
+    var outlet_wise_food_item = _.chain(sales_live_data.sales_data)
     .groupBy("outlet_name")
     .map(function(value, key) {
     var data=[];
-        _.map(value,function(x){
-        var datas=[];
-        datas.push(x.food_item_name)
-        datas.push( parseInt(x.qty))
-         data.push(datas)
-        })
-        return {name:key,id:key,data};
+    _.map(value,function(x){
+    var datas=[];
+    datas.push(x.food_item_name)
+    datas.push( parseInt(x.qty))
+    data.push(datas)
+    })
+    return {name:key,id:key,data};
     })
     .value();
-
- draw_chart('live_sales_container','Outlet wise details',outlet_wise_sum_of_sales,outlet_wise_food_item)
-})
-  .fail(function(xhr,err,jquery) {
+    draw_chart('live_sales_container_mobile','Outlet wise details',outlet_wise_sum_of_sales,outlet_wise_food_item)
+    draw_chart('live_sales_container','Outlet wise details',outlet_wise_sum_of_sales,outlet_wise_food_item)
+    })
+    .fail(function(xhr,err,jquery) {
     alert( xhr.responseText );
-  });
-})
+    });
+    })
 
-function sum(numbers) {
+    function sum(numbers) {
     return _.reduce(numbers, function(result, current) {
-        return result + parseFloat(current);
+    return result + parseFloat(current);
     }, 0);
-}
-$('#btn_refresh').click(function(){
+    }
+    $('#btn_refresh').click(function(){
     get_volume_plan_data();
-})
+    })
 
-function get_volume_plan_data()
-{
-var restaurant_id=$('#main_row').attr('data-restaurant_id')
-$.get('get_volume_plan',{'restaurant_id':restaurant_id},  function(data) {
- 
-var sum_of_session = _.chain(data)
+    function get_volume_plan_data()
+    {
+
+    var restaurant_id=$('#main_row').attr('data-restaurant_id')
+    $.get('get_volume_plan',{'restaurant_id':restaurant_id},  function(data) {
+
+    var sum_of_session = _.chain(data)
     .groupBy("session")
     .map(function(value, key) {
-        return {
-            name: key,
-            qty: sum(_.pluck(value, "qty"))
-        }
+    return {
+    name: key,
+    qty: sum(_.pluck(value, "qty"))
+    }
     })
     .value();
 
-var session_data = _.chain(data)
+    var session_data = _.chain(data)
     .groupBy("session")
     .map(function(value, key) {
     var data=[];
-        _.map(value,function(x){
-        var datas=[];
-        datas.push(x.name)
-        datas.push(parseInt(x.qty))
-         data.push(datas)
-        })
-        return {name:key,id:key,data};
+    _.map(value,function(x){
+    var datas=[];
+    datas.push(x.name)
+    datas.push(parseInt(x.qty))
+    data.push(datas)
+    })
+    return {name:key,id:key,data};
     })
     .value();
-
+    $('#volume_summary_div').show();
     draw_chart('volume_plan_container','Volume plan details',sum_of_session,session_data)
-})
-  .fail(function(xhr,err,jquery) {
+    draw_chart('volume_plan_container_mobile','Volume plan details',sum_of_session,session_data)
+    })
+    .fail(function(xhr,err,jquery) {
     alert( xhr.responseText);
-  });
-}
+    });
+    }
 
-function draw_chart(container,title_text,sum_of_session,session_data)
-{
+    function draw_chart(container,title_text,sum_of_session,session_data)
+    {
     var sum_object_array=[];
     _.map(sum_of_session,function(data){
     var sum_object={name:data.name,y:data.qty, drilldown: data.name }
     sum_object_array.push(sum_object)
     })
- $('#'+container).highcharts({
-        chart: {
-            type: 'column'
-        },
-         title: {
-            text: title_text
-        },
-         xAxis: {
-            type: 'category'
-        },
-        yAxis: {
-            title: {
-                text: 'Values'
-            }
-        },
-        legend: {
-            enabled: false
-        },
-        plotOptions: {
-            series: {
-                borderWidth: 0,
-                dataLabels: {
-                    enabled: true,
-                    format: '{point.y}'
-                }
-            }
-        },
-        tooltip: {
-            headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
-            pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y}</b> of total<br/>'
-        },
-        series: [{
-            colorByPoint: true,
-            data: sum_object_array
-        }],
-        drilldown: {
-            series: session_data
-        }
+    $('#'+container).highcharts({
+    chart: {
+    type: 'column'
+    },
+    title: {
+    text: title_text
+    },
+    xAxis: {
+    type: 'category'
+    },
+    yAxis: {
+    title: {
+    text: 'Values'
+    }
+    },
+    legend: {
+    enabled: false
+    },
+    plotOptions: {
+    series: {
+    borderWidth: 0,
+    dataLabels: {
+    enabled: true,
+    format: '{point.y}'
+    }
+    }
+    },
+    tooltip: {
+    headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+    pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y}</b> of total<br />'
+    },
+    series: [{
+    colorByPoint: true,
+    data: sum_object_array
+    }],
+    drilldown: {
+    series: session_data
+    }
     });
-}
-  
-  {{/yield-scripts}}
+    }
+    
+    function mobile_hide()
+    {  $('#sales_summary_div').hide();
+    $('#volume_summary_div').hide();
+    $('#packing_summary_div').hide();
+    $('#live_sales_summary_div').hide();
+    }
+    function addCommas(str) {
+    var parts = (str + "").split("."),
+        main = parts[0],
+        len = main.length,
+        output = "",
+        first = main.charAt(0),
+        i;
+
+    if (first === '-') {
+        main = main.slice(1);
+        len = main.length;
+    } else {
+    	  first = "";
+    }
+    i = len - 1;
+    while(i >= 0) {
+        output = main.charAt(i) + output;
+        if ((len - i) % 3 === 0 && i > 0) {
+            output = "," + output;
+        }
+        --i;
+    }
+    // put sign back
+    output = first + output;
+    // put decimal part back
+    if (parts.length > 1) {
+        output += "." + parts[1];
+    }
+    return output;
+    }
+
+{{/yield-scripts}}
