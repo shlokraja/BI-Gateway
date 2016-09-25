@@ -11,6 +11,7 @@ var encrypt_decrypt = require('../utils/encryption_decryption')
 var mailer = require('../utils/mail_helper')
 var live_data_model = require('../models/live_data_model')
 var request = require('request')
+var _ = require('underscore');
 
 var api_url = process.env.Service_Uri || 'http://localhost:9090/';
 
@@ -19,9 +20,7 @@ router.get('/', function (req, res, next) {
         title: ''
     };
     var cookie = req.cookies.login_details;
-
     if (cookie != undefined) {
-        live_data_model.get_barcode_list_from_firebase()
         var context = {
             title: '',
             restaurant_id: cookie.restaurant_id,
@@ -48,7 +47,7 @@ router.get('/get_sign_up', function (req, res, next) {
             res.render('pages/live_data_signup', context)
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' });
+            res.status(400).send({ error: 'Something failed ' });
         }
     })
 });
@@ -71,7 +70,7 @@ router.post('/generate_pin', function (req, res) {
             }
         }
         if (error) {
-            res.status(500).send('Something failed ');
+            res.status(400).send('Something failed ');
         }
     })
 })
@@ -108,7 +107,7 @@ router.get('/check_credential', function (req, res) {
             }
         }
         if (error) {
-            res.status(500).send('Something failed ');
+            res.status(400).send('Something failed ');
         }
     })
 })
@@ -124,12 +123,12 @@ router.get('/get_volume_plan', function (req, res) {
             if (info.status != 'FAIL') {
                 res.send(info.data.volume_plan)
             } else {
-                res.status(500).send('No data found ');
+                res.status(400).send('No data found ');
             }
 
         }
         if (error) {
-            res.status(500).send('Something failed ');
+            res.status(400).send('Something failed ');
         }
     })
 })
@@ -143,11 +142,11 @@ router.get('/get_live_sales_data', function (req, res) {
             if (info.status != 'FAIL') {
                 res.send({ sales_data: info.data.live_sales_data.sales_data, taken_data: info.data.live_sales_data.taken_data })
             } else {
-                res.status(500).send('No data found ');
+                res.status(400).send('No data found ');
             }
         }
         if (error) {
-            res.status(500).send('Something failed ');
+            res.status(400).send('Something failed ');
         }
     })
 })
@@ -162,7 +161,7 @@ router.get('/get_sales_summary', function (req, res) {
             res.send(info.data.sales_summary)
         }
         if (error) {
-            res.status(500).send('Something failed ');
+            res.status(400).send('Something failed ');
         }
     })
 })
@@ -178,16 +177,41 @@ router.get('/live_packing_data', function (req, res) {
                 if (info.status != 'FAIL') {
                     res.send(info.data.live_packing)
                 } else {
-                    res.status(500).send('No data found ');
+                    res.status(400).send('No data found ');
                 }
             }
             if (error) {
-                res.status(500).send('Something failed ');
+                res.status(400).send('Something failed ');
             }
         })
     } else {
         res.render('pages/live_data_login', context);
     }
 })
+
+router.get('/get_restaurant_outlet_packing', function (req, res, next) {
+    
+ var cookie = req.cookies.login_details;
+    if (cookie != undefined) {
+        var url = api_url + 'live_packing_data_ctrlctr?firebase_url=' + cookie.firebase_url+'/queue&restaurant_id=' + cookie.restaurant_id;
+         request(url, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var info = JSON.parse(body)
+
+ if (info.status != 'FAIL') {
+    res.send(info.data.live_packing_data)
+                  
+      }else {
+                    res.status(400).send('No data found ');
+                } 
+        }
+        if (error) {
+            res.status(400).send('Something failed ');
+        }
+    })
+    } else {
+        res.render('pages/live_data_login', context);
+    }
+});
 
 module.exports = router;

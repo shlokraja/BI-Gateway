@@ -10,15 +10,58 @@ format.extend(String.prototype);
 var Firebase = require('firebase');
 var barcode_list = require('../models/get_barcodes_list');
 
-var get_barcode_list_from_firebase = function () {
+var get_barcode_list_from_firebase = function (firebase_url,restaurant_id,callback) {
 
-    barcode_list.get_barcode_list('https://atcpaymentstage.firebaseio.com/queue', function (err, response) {
+    barcode_list.get_barcode_list(firebase_url, function (err, response) {
         if (err) {
-            //return callback(new Error(err, null));
+            return callback(new Error(err, null));
         }
         if (response) {
-
+pg.connect(conString, function (err, client, done) {
+        if (err) {
+            return callback(new Error(err, null));
         }
+
+var query_string="select ordered.restaurant_id,ordered.outlet_id,ordered.orderedqty,pckd.pkdquantity,owl.name as outletname from ( \
+with barcodes as (select x.barlist->>'restaurant_id' as restaurant_id,x.barlist->>'barcode' as barcode from( select json_array_elements($1) as barlist ) as x ) \
+select \
+coalesce(grpd.restaurant_id,batchdata.restaurant_id) as restaurant_id, \
+coalesce(grpd.outlet_id,batchdata.outlet_id) as outlet_id, \
+coalesce(grpd.fbqty,batchdata.batchqty) as pkdquantity \
+from (select restaurant_id::int as restaurant_id,substr(barcode,3,3)::int as outlet_id , \
+  count(barcode) as fbqty from barcodes  group by \
+ restaurant_id,substr(barcode,3,3)::int) as grpd \
+full outer join \
+ (select  p.restaurant_id,p.outlet_id as outlet_id, sum(quantity) as batchqty \
+from purchase_order_batch b join purchase_order p \
+  on b.purchase_order_id=p.id \
+where scheduled_delivery_time::date=current_date \
+group by p.restaurant_id, p.outlet_id ) as batchdata \
+   on grpd.restaurant_id=batchdata.restaurant_id and grpd.outlet_id=batchdata.outlet_id \
+) as pckd  \
+right outer join ( select p.restaurant_id,p.outlet_id , sum(pm.quantity) as orderedqty from purchase_order p join purchase_order_master_list pm \
+on p.id=pm.purchase_order_id where scheduled_delivery_time::date=current_date \
+group by p.restaurant_id,p.outlet_id)  as ordered \
+on pckd.restaurant_id=ordered.restaurant_id and pckd.outlet_id=ordered.outlet_id join outlet owl on ordered.outlet_id=owl.id \
+where (case when coalesce($2,ordered.restaurant_id)=$2 then $2 else ordered.restaurant_id end) = ordered.restaurant_id "
+
+client.query(query_string,
+            [JSON.stringify(response),restaurant_id],
+            function (query_err, restaurant) {
+                done();
+                if (query_err) {
+                    return callback(new Error(query_err, null));
+                }
+                if (restaurant.rows.length > 0) {
+                    return callback(null, restaurant.rows);
+                } else {
+                    return callback(new Error("No data found"));
+                }
+            });
+})
+        }else {
+                    return callback(new Error("No data found"));
+                }
     })
 }
 

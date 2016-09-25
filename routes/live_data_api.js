@@ -289,6 +289,34 @@ app.get('/get_sales_data_ctrlctr', function (req, res) {
 })
 
 
+app.get('/live_packing_data_ctrlctr', function (req, res) {
+    try {
+        var firebase_url = req.query.firebase_url;
+        var restaurant_id = req.query.restaurant_id;
+        
+        live_data_model.get_barcode_list_from_firebase(firebase_url,restaurant_id, function (err, response) {
+            if (err) {
+                handleError("Error occured while getting value from live_data_model.get_barcode_list_from_firebase_ctrlctr" + err);
+                message_text = no_data_found;
+                status_text = fail_status;
+                context = { data: { 'result': output }, message: message_text, status: status_text };
+                res.send(context);
+                return;
+            }
+            var context = { data: {live_packing_data: response }, status: success_status };
+            res.json(context);
+            return
+        })
+    } catch (ex) {
+        general.genericError("live_data_api.js :: live_packing_data_ctrlctr: " + ex);
+        message_text = no_data_found;
+        status_text = fail_status;
+        context = { data: { 'result': '' }, message: message_text, status: status_text };
+        res.send(context);
+        return;
+    }
+})
+
 app.listen('9090', function () {
     general.genericError('Example router listening on port 9090!');
 });

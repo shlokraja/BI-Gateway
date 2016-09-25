@@ -22,13 +22,14 @@
         <div class="tabs-content" data-tabs-content="example-tabs">
             <div class="tabs-panel is-active" id="panel1">
                 <!-- Replace with the Respective Customer Logo -->
-                <button class="button" id="btn_refresh">Refresh</button>
+                <!--<button class="button" id="btn_refresh">Refresh</button>-->
                 <div id="volume_plan_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
             </div>
             <div class="tabs-panel" id="panel2">
                 <div class="expanded button-group">
-                    <a class="button Day_packing" id="Day_packing">Overall Day</a>
+                    <a class="button Day_packing hide" id="Day_packing">Overall Day</a>
                     <a class="button Session_packing active" id="Session_packing">Session wise</a>
+                    <a class="button Outlet_packing active" id="Outlet_packing">Outlet wise</a>
                 </div>
                 <!-- Replace with the Respective Customer Logo -->
                 <div class="live_packing_container" id="live_packing_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
@@ -77,8 +78,9 @@
                 <li>
                     <a  href="#">Packing</a>
                     <ul class="menu vertical">
-                        <li><a class="Day_packing" id="Day_packing">Overall Day</a></li>
+                        <li><a class="Day_packing hide" id="Day_packing">Overall Day</a></li>
                         <li><a class="Session_packing" id="Session_packing">Session Wise</a></li>
+                        <li><a class="Outlet_packing" id="Outlet_packing">Outlet wise</a></li>
                     </ul>
                 </li>
                 <li>
@@ -125,7 +127,6 @@
 {{#yield-scripts}}
 
     $(document).ready(function(){
-    $('#btn_refresh').hide()
     mobile_hide();
     get_volume_plan_data();
     var short_name="{{restaurant_short_name}}"
@@ -142,6 +143,7 @@
      $('#sold_taken').removeClass('active');
      $('#Outletwise').addClass('active');
      $('#Productwise').addClass('active');
+
     var restaurant_id=$('#main_row').attr('data-restaurant_id')
     $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live) {
     var total_quantity=0;
@@ -204,7 +206,53 @@
 
     })
     .fail(function(xhr,err,jquery) {
+    $('#live_sales_summary_div').show();
      $('.live_sales_container').html( xhr.responseText)
+     $('.live_sales_container_mobile').html( xhr.responseText)
+    });
+    })
+
+
+    $('.Outlet_packing').click(function(e){
+    $('#loader').show();
+    mobile_hide();
+    $('#Outlet_packing').removeClass('active');
+    $('#Day_packing').addClass('active');
+    $('#Session_packing').addClass('active');
+
+    var restaurant_id=$('#main_row').attr('data-restaurant_id')
+    $.get('get_restaurant_outlet_packing', function(live_packing_data) {
+
+    var main_data=[];
+
+    var main_packed_array=[];
+    var main_un_packed_array=[];
+    var name_array=[];
+    $.map(live_packing_data,function(item){
+    name_array.push(item.outletname)
+    var packed_array=[];
+    var un_packed_array=[];
+    packed_array.push(parseInt(item.pkdquantity))
+    var unpacked_qty=item.orderedqty-item.pkdquantity;
+    un_packed_array.push( parseInt(unpacked_qty) )
+
+    main_un_packed_array.push(un_packed_array)
+    main_packed_array.push(packed_array)
+    })
+
+    main_data.push({name:'packed',data:main_packed_array})
+    main_data.push({name:'unpacked',data:main_un_packed_array})
+    $('#packing_summary_div').show();
+    draw_live_session_packing_chart('live_packing_container',main_data,name_array)
+    draw_live_session_packing_chart('live_packing_container_mobile',main_data,name_array)
+
+    $('#loader').hide();
+    })
+    .fail(function(xhr,err,jquery) {
+    $('#loader').hide();
+    $('#packing_summary_div').show();
+    $('#live_packing_container').html( xhr.responseText)
+    $('#live_packing_container_mobile').html( xhr.responseText)
     });
     })
 
@@ -214,6 +262,7 @@
     mobile_hide();
     $('#Day_packing').addClass('active');
     $('#Session_packing').removeClass('active');
+     $('#Outlet_packing').addClass('active');
     var restaurant_id=$('#main_row').attr('data-restaurant_id')
     $.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
 
@@ -253,6 +302,7 @@
     })
     .fail(function(xhr,err,jquery) {
     $('#loader').hide();
+    $('#packing_summary_div').show();
     $('#live_packing_container').html( xhr.responseText)
     $('#live_packing_container_mobile').html( xhr.responseText)
     });
@@ -263,6 +313,7 @@
     mobile_hide();
     $('#Day_packing').removeClass('active');
     $('#Session_packing').addClass('active');
+     $('#Outlet_packing').addClass('active');
     var restaurant_id=$('#main_row').attr('data-restaurant_id')
     $.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
     var total_quantity=0;
@@ -281,6 +332,7 @@
     })
     .fail(function(xhr,err,jquery) {
     $('#loader').hide();
+     $('#packing_summary_div').show();
     $('#live_packing_container').html( xhr.responseText)
     $('#live_packing_container_mobile').html( xhr.responseText)
     });
@@ -440,11 +492,12 @@
     return {name:key,id:key,data};
     })
     .value();
-    $('#live_sales_container_mobile').show();
+    $('#live_sales_summary_div').show();
     draw_chart('live_packing_container_mobile','Product wise details',productwise_wise_sum_of_sales,food_item_wise_outlet)
     draw_chart('live_sales_container','Product wise details',productwise_wise_sum_of_sales,food_item_wise_outlet)
     })
     .fail(function(xhr,err,jquery) {
+    $('#live_sales_summary_div').show();
     $('#live_sales_container_mobile').html(xhr.responseText)
     $('#live_sales_container').html(xhr.responseText)
     });
@@ -486,6 +539,7 @@
     draw_chart('live_sales_container','Outlet wise details',outlet_wise_sum_of_sales,outlet_wise_food_item)
     })
     .fail(function(xhr,err,jquery) {
+    $('#live_sales_summary_div').show();
     $('#live_sales_container_mobile').html(xhr.responseText)
     $('#live_sales_container').html(xhr.responseText)
     });
@@ -496,9 +550,6 @@
     return result + parseFloat(current);
     }, 0);
     }
-    $('#btn_refresh').click(function(){
-    get_volume_plan_data();
-    })
 
     function get_volume_plan_data()
     {
@@ -534,6 +585,7 @@
     draw_chart('volume_plan_container_mobile','Volume plan details',sum_of_session,session_data)
     })
     .fail(function(xhr,err,jquery) {
+     $('#volume_summary_div').show();
     $('#volume_plan_container').html(xhr.responseText)
     $('#volume_plan_container_mobile').html(xhr.responseText)
     });
