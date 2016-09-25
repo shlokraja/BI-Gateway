@@ -317,45 +317,47 @@ var get_restaurant_details = function (restaurant_id, callback) {
 
 
 
-var get_outlet_sales_data = function (outlet_id, callback) {
+var get_sales_data_ctrlctr = function (outlet_id, callback) {
     pg.connect(conString, function (err, client, done) {
         if (err) {
             return callback(err, null)
         }
-        client.query('select sum(batch.quantity) as taken from purchase_order po \
-                     inner join purchase_order_batch batch on batch.purchase_order_id=po.id \
-                    where po.outlet_id=$1 and batch.received_time::date=now()::date'
+
+client.query("with podata as( \
+select po.restaurant_id,po.outlet_id,pm.food_item_id,sum(coalesce(pbo.quantity,pm.quantity)) as taken \
+ from (select * from purchase_order where outlet_id=$1 and to_char(scheduled_delivery_time,'DDMMYYYY')= to_char(now(),'DDMMYYYY')) as  po \
+ join purchase_order_master_list pm  on po.id=pm.purchase_order_id \
+left outer join \
+    (select purchase_order_id,substr(pb.barcode,3,3) as outlet, \
+        base36_decode(substring(pb.barcode from 9 for 4))::integer as food_item_id,  \
+    sum(quantity) as quantity from purchase_order_batch pb \
+     where substr(barcode,13,8) = to_char(now(),'DDMMYYYY') and substr(pb.barcode,3,3)::int=$1  \
+    group by outlet,food_item_id,purchase_order_id ) as pbo \
+       on pm.purchase_order_id = pbo.purchase_order_id and pm.food_item_id = pbo.food_item_id  \
+group by po.restaurant_id,po.outlet_id,pm.food_item_id)  \
+select podata.taken,podata.outlet_id,podata.restaurant_id,sales.sold ,  \
+sales.food_item_name,sales.restaurant_name,sales.outlet_name from podata \
+ join \
+(select sum(soi.quantity) as sold,out.id as outlet_id, out.name as outlet_name, res.id as restaurant_id, \
+fi.id as food_item_id,fi.name as food_item_name,res.name as restaurant_name from sales_order so \
+                        inner join sales_order_items soi on soi.sales_order_id=so.id  \
+                        inner join food_item fi on fi.id=soi.food_item_id \
+                        inner join outlet out on  out.id=so.outlet_id   \
+                        inner join restaurant res on res.id=fi.restaurant_id \
+                        where  out.id=$1 and to_char(time,'DD-MM-YYYY')=to_char(now(),'DD-MM-YYYY') \
+                        group by so.outlet_id,out.name,soi.food_item_id,fi.name,res.name ,res.id,out.id ,fi.id) as sales \
+on podata.outlet_id=sales.outlet_id and podata.restaurant_id =sales.restaurant_id and podata.food_item_id=sales.food_item_id;" 
             , [outlet_id],
             function (query_err, taken_result) {
                 done();
                 if (query_err) {
                     return callback(query_err, null)
                 }
-                if (taken_result) {
-                    client.query(
-                        "select \
-                        sum(soi.quantity) as qty,out.name as outlet_name, \
-                        fi.name as food_item_name,res.name as restaurant_name from sales_order so \
-                        inner join sales_order_items soi on soi.sales_order_id=so.id \
-                        inner join food_item fi on fi.id=soi.food_item_id \
-                        inner join outlet out on  out.id=so.outlet_id \
-                        inner join restaurant res on res.id=fi.restaurant_id \
-                        where  out.id=$1 and time::date=now()::date \
-                        group by so.outlet_id,out.name,soi.food_item_id,fi.name,res.name \
-                        order by out.name  ",
-                        [outlet_id],
-                        function (query_err, outlet_sales_data) {
-                            done();
-                            if (query_err) {
-                                return callback(query_err, null)
-                            }
-                            if (outlet_sales_data.rows.length>0) {
-                                return callback(null, { taken_data: taken_result.rows[0].taken, outlet_sales_data: outlet_sales_data.rows })
+                            if (taken_result.rows.length>0) {
+                                return callback(null, { taken_data: taken_result.rows })
                             } else {
                                 return callback(new Error('No data found'))
                             }
-                        });
-                }
             })
 
     });
@@ -372,5 +374,5 @@ module.exports = {
     check_credentials: check_credentials,
     get_sales_data: get_sales_data,
     get_sales_summary: get_sales_summary,
-    get_outlet_sales_data:get_outlet_sales_data
+    get_sales_data_ctrlctr:get_sales_data_ctrlctr
 }
