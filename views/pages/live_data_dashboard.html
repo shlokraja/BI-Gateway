@@ -387,7 +387,7 @@
 
     var table_body='';
     $.map(productwise_wise_sum_of_sales,function(data){
-    table_body+='<tr><td>'+ data.period+' </td><td style="text-align:right"> ₹ '+addCommas(data.sale.toFixed(2))+' </td></tr>'
+    table_body+='<tr><td>'+ data.period+' </td><td style="text-align:right">  '+addCommas(data.sale.toFixed(2))+' ₹ </td></tr>'
     })
     $('#sales_summary_div').show();
     $('#sales_summary_container').html(table_body)
