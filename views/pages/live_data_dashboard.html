@@ -139,6 +139,9 @@
 
     $('.sold_taken').click(function(e){
     mobile_hide();
+     $('#sold_taken').removeClass('active');
+     $('#Outletwise').addClass('active');
+     $('#Productwise').addClass('active');
     var restaurant_id=$('#main_row').attr('data-restaurant_id')
     $.get('get_live_sales_data',{'restaurant_id':restaurant_id}, function(sales_live) {
     var total_quantity=0;
@@ -201,7 +204,7 @@
 
     })
     .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText);
+     $('.live_sales_container').html( xhr.responseText)
     });
     })
 
@@ -250,13 +253,16 @@
     })
     .fail(function(xhr,err,jquery) {
     $('#loader').hide();
-    alert( xhr.responseText);
+    $('#live_packing_container').html( xhr.responseText)
+    $('#live_packing_container_mobile').html( xhr.responseText)
     });
     })
 
     $('.Day_packing').click(function(e){
     $('#loader').show();
     mobile_hide();
+    $('#Day_packing').removeClass('active');
+    $('#Session_packing').addClass('active');
     var restaurant_id=$('#main_row').attr('data-restaurant_id')
     $.get('live_packing_data',{'restaurant_id':restaurant_id}, function(live_packing_data) {
     var total_quantity=0;
@@ -275,7 +281,8 @@
     })
     .fail(function(xhr,err,jquery) {
     $('#loader').hide();
-    alert( xhr.responseText);
+    $('#live_packing_container').html( xhr.responseText)
+    $('#live_packing_container_mobile').html( xhr.responseText)
     });
     })
 
@@ -395,7 +402,9 @@
    
     })
     .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText);
+    $('#sales_summary_div').show();
+    $('#sales_summary_container').html(xhr.responseText)
+    $('#sales_summary_container_mobile').html(xhr.responseText)
     });
     })
 
@@ -436,7 +445,8 @@
     draw_chart('live_sales_container','Product wise details',productwise_wise_sum_of_sales,food_item_wise_outlet)
     })
     .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText);
+    $('#live_sales_container_mobile').html(xhr.responseText)
+    $('#live_sales_container').html(xhr.responseText)
     });
     })
 
@@ -476,7 +486,8 @@
     draw_chart('live_sales_container','Outlet wise details',outlet_wise_sum_of_sales,outlet_wise_food_item)
     })
     .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText );
+    $('#live_sales_container_mobile').html(xhr.responseText)
+    $('#live_sales_container').html(xhr.responseText)
     });
     })
 
@@ -523,7 +534,8 @@
     draw_chart('volume_plan_container_mobile','Volume plan details',sum_of_session,session_data)
     })
     .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText);
+    $('#volume_plan_container').html(xhr.responseText)
+    $('#volume_plan_container_mobile').html(xhr.responseText)
     });
     }
 

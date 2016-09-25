@@ -261,11 +261,11 @@ app.get('/get_live_packing_data', function (req, res) {
     }
 })
 
-app.get('/get_outlet_sales_data', function (req, res) {
+app.get('/get_sales_data_ctrlctr', function (req, res) {
     try {
         var outlet_id = req.query.outlet_id;
         
-        live_data_model.get_outlet_sales_data(outlet_id, function (err, response) {
+        live_data_model.get_sales_data_ctrlctr(outlet_id, function (err, response) {
             if (err) {
                 handleError("Error occured while getting value from live_data_model.get_outlet_sales_data" + err);
                 message_text = no_data_found;

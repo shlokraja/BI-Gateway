@@ -15,13 +15,13 @@ var request = require('request')
 var api_url = process.env.Service_Uri || 'http://localhost:9090/';
 
 router.get('/', function (req, res, next) {
-    console.log("************************ called")
     var context = {
         title: ''
     };
     var cookie = req.cookies.login_details;
 
     if (cookie != undefined) {
+        live_data_model.get_barcode_list_from_firebase()
         var context = {
             title: '',
             restaurant_id: cookie.restaurant_id,
@@ -29,7 +29,6 @@ router.get('/', function (req, res, next) {
             restaurant_short_name: cookie.restaurant_short_name
         }
 
-        console.log("************************ Above render")
         res.render('pages/live_data_dashboard', context);
     } else {
         res.render('pages/live_data_login', context);
@@ -49,7 +48,7 @@ router.get('/get_sign_up', function (req, res, next) {
             res.render('pages/live_data_signup', context)
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send({ error: 'Something failed ' });
         }
     })
 });
@@ -72,7 +71,7 @@ router.post('/generate_pin', function (req, res) {
             }
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send('Something failed ');
         }
     })
 })
@@ -109,7 +108,7 @@ router.get('/check_credential', function (req, res) {
             }
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send('Something failed ');
         }
     })
 })
@@ -122,10 +121,15 @@ router.get('/get_volume_plan', function (req, res) {
     request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var info = JSON.parse(body)
-            res.send(info.data.volume_plan)
+            if (info.status != 'FAIL') {
+                res.send(info.data.volume_plan)
+            } else {
+                res.status(500).send('No data found ');
+            }
+
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send('Something failed ');
         }
     })
 })
@@ -139,11 +143,11 @@ router.get('/get_live_sales_data', function (req, res) {
             if (info.status != 'FAIL') {
                 res.send({ sales_data: info.data.live_sales_data.sales_data, taken_data: info.data.live_sales_data.taken_data })
             } else {
-                res.status(500).send({ error: 'No data found ' + error });
+                res.status(500).send('No data found ');
             }
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send('Something failed ');
         }
     })
 })
@@ -158,7 +162,7 @@ router.get('/get_sales_summary', function (req, res) {
             res.send(info.data.sales_summary)
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send('Something failed ');
         }
     })
 })
@@ -167,14 +171,18 @@ router.get('/live_packing_data', function (req, res) {
     var restaurant_id = req.query.restaurant_id;
     var cookie = req.cookies.login_details;
     if (cookie != undefined) {
-        var url = api_url + 'get_live_packing_data?restaurant_id=' + cookie.restaurant_id+'&firebase_url='+cookie.firebase_url;
+        var url = api_url + 'get_live_packing_data?restaurant_id=' + cookie.restaurant_id + '&firebase_url=' + cookie.firebase_url;
         request(url, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 var info = JSON.parse(body)
-                res.send(info.data.live_packing)
+                if (info.status != 'FAIL') {
+                    res.send(info.data.live_packing)
+                } else {
+                    res.status(500).send('No data found ');
+                }
             }
             if (error) {
-                res.status(500).send({ error: 'Something failed ' + error.message });
+                res.status(500).send('Something failed ');
             }
         })
     } else {
