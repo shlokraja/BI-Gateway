@@ -227,7 +227,7 @@ var get_sales_data = function (restaurant_id, callback) {
                             if (query_err) {
                                 return callback(query_err, null)
                             }
-                            if (sales_data.rows.length>0) {
+                            if (sales_data.rows.length > 0) {
                                 return callback(null, { taken_data: taken_result.rows[0].taken, sales_data: sales_data.rows })
                             } else {
                                 return callback(new Error('No data found'))
@@ -283,7 +283,7 @@ var get_sales_summary = function (restaurant_id, callback) {
                 if (query_err) {
                     return callback(query_err, null)
                 }
-                if (get_sales_summary.rows.length>0) {
+                if (get_sales_summary.rows.length > 0) {
                     return callback(null, get_sales_summary.rows)
                 } else {
                     return callback(new Error('No data found'))
@@ -323,7 +323,7 @@ var get_sales_data_ctrlctr = function (outlet_id, callback) {
             return callback(err, null)
         }
 
-client.query("with podata as( \
+        client.query("with podata as( \
 select po.restaurant_id,po.outlet_id,pm.food_item_id,sum(coalesce(pbo.quantity,pm.quantity)) as taken \
  from (select * from purchase_order where outlet_id=$1 and to_char(scheduled_delivery_time,'DDMMYYYY')= to_char(now(),'DDMMYYYY')) as  po \
  join purchase_order_master_list pm  on po.id=pm.purchase_order_id \
@@ -346,20 +346,19 @@ fi.id as food_item_id,fi.name as food_item_name,res.name as restaurant_name from
                         inner join restaurant res on res.id=fi.restaurant_id \
                         where  out.id=$1 and to_char(time,'DD-MM-YYYY')=to_char(now(),'DD-MM-YYYY') \
                         group by so.outlet_id,out.name,soi.food_item_id,fi.name,res.name ,res.id,out.id ,fi.id) as sales \
-on podata.outlet_id=sales.outlet_id and podata.restaurant_id =sales.restaurant_id and podata.food_item_id=sales.food_item_id;" 
+on podata.outlet_id=sales.outlet_id and podata.restaurant_id =sales.restaurant_id and podata.food_item_id=sales.food_item_id;"
             , [outlet_id],
             function (query_err, taken_result) {
                 done();
                 if (query_err) {
                     return callback(query_err, null)
                 }
-                            if (taken_result.rows.length>0) {
-                                return callback(null, { taken_data: taken_result.rows })
-                            } else {
-                                return callback(new Error('No data found'))
-                            }
+                if (taken_result.rows.length > 0) {
+                    return callback(null, { taken_data: taken_result.rows })
+                } else {
+                    return callback(new Error('No data found'))
+                }
             })
-
     });
 };
 
@@ -374,5 +373,5 @@ module.exports = {
     check_credentials: check_credentials,
     get_sales_data: get_sales_data,
     get_sales_summary: get_sales_summary,
-    get_sales_data_ctrlctr:get_sales_data_ctrlctr
+    get_sales_data_ctrlctr: get_sales_data_ctrlctr
 }

@@ -15,7 +15,6 @@ var request = require('request')
 var api_url = process.env.Service_Uri || 'http://localhost:9090/';
 
 router.get('/', function (req, res, next) {
-    console.log("************************ called")
     var context = {
         title: ''
     };
@@ -29,7 +28,6 @@ router.get('/', function (req, res, next) {
             restaurant_short_name: cookie.restaurant_short_name
         }
 
-        console.log("************************ Above render")
         res.render('pages/live_data_dashboard', context);
     } else {
         res.render('pages/live_data_login', context);
@@ -49,7 +47,7 @@ router.get('/get_sign_up', function (req, res, next) {
             res.render('pages/live_data_signup', context)
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send({ error: 'Something failed ' });
         }
     })
 });
@@ -72,7 +70,7 @@ router.post('/generate_pin', function (req, res) {
             }
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send('Something failed ');
         }
     })
 })
@@ -109,7 +107,7 @@ router.get('/check_credential', function (req, res) {
             }
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send('Something failed ');
         }
     })
 })
@@ -125,7 +123,7 @@ router.get('/get_volume_plan', function (req, res) {
             res.send(info.data.volume_plan)
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send('Something failed ');
         }
     })
 })
@@ -139,11 +137,11 @@ router.get('/get_live_sales_data', function (req, res) {
             if (info.status != 'FAIL') {
                 res.send({ sales_data: info.data.live_sales_data.sales_data, taken_data: info.data.live_sales_data.taken_data })
             } else {
-                res.status(500).send({ error: 'No data found ' + error.errno });
+                res.status(500).send('No data found ');
             }
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send( 'Something failed ');
         }
     })
 })
@@ -158,7 +156,7 @@ router.get('/get_sales_summary', function (req, res) {
             res.send(info.data.sales_summary)
         }
         if (error) {
-            res.status(500).send({ error: 'Something failed ' + error.errno });
+            res.status(500).send('Something failed ');
         }
     })
 })
@@ -174,7 +172,7 @@ router.get('/live_packing_data', function (req, res) {
                 res.send(info.data.live_packing)
             }
             if (error) {
-                res.status(500).send({ error: 'Something failed ' + error.message });
+                res.status(500).send('Something failed ');
             }
         })
     } else {
