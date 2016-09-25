@@ -7,6 +7,14 @@
   </div>
 </div>
 <br/>
+<div class="success callout small" style="display:none" id='warning' data-closable="slide-out-right">
+  <p id='Message'></p>
+  <button class="close-button" aria-label="Dismiss alert" type="button" data-close>
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<br/>
 <div class="row">
   <div class="small-12 small-centered large-12 large-centered column">
 
@@ -19,8 +27,6 @@
 
     <div class="tabs-content" data-tabs-content="example-tabs">
       <div class="tabs-panel is-active" id="panel1">
-        <!-- Replace with the Respective Customer Logo -->
-        <button  class="button" id="btn_refresh" >Refresh</button>
         <div id="volume_plan_container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
       </div>
       <div class="tabs-panel" id="panel2">
@@ -78,6 +84,7 @@ $(document).ready(function(){
     var short_name="{{restaurant_short_name}}"
     var image_path = 'images/'+short_name+'.png';
     $('#restaurant_img').attr("src", image_path)
+    get_volume_plan_data();
 });
 $('#volume_plan').click(function(){
     get_volume_plan_data();
@@ -145,7 +152,13 @@ main_array.push({name:key,data:data})
     
 })
   .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText);
+   	$('#loader').hide();
+   $( '#Message' ).text( xhr.responseText);
+  $('#warning').show();
+  setTimeout(function(){
+        $('#warning').hide();
+        },3000)
+    
   });
 })
 
@@ -231,7 +244,11 @@ main_data.push({name:'unpacked',data:main_un_packed_array})
 })
   .fail(function(xhr,err,jquery) {
   	$('#loader').hide();
-    alert( xhr.responseText);
+   $( '#Message' ).text( xhr.responseText);
+  $('#warning').show();
+  setTimeout(function(){
+        $('#warning').hide();
+        },3000)
   });
 })
 
@@ -254,7 +271,9 @@ main_array.push({name:key,data:data})
 })
   .fail(function(xhr,err,jquery) {
   	$('#loader').hide();
-    alert( xhr.responseText);
+    $( '#Message' ).text( xhr.responseText);
+  $('#warning').show();
+  setTimeout(function(){$('#warning').hide();},3000)
   });
 })
 
@@ -326,8 +345,9 @@ table_body+='<tr><td>'+ data.period+' </td><td style="text-align:right"> '+data.
  $('#sales_summary_container').html(table_body)
 })
   .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText);
-  });
+   $( '#Message' ).text( xhr.responseText);
+  $('#warning').show();
+  setTimeout(function(){$('#warning').hide();},3000)});
 })
 
 $('#Productwise').click(function(){
@@ -361,7 +381,11 @@ var food_item_wise_outlet= _.chain(sales_live_data.sales_data)
  draw_chart('live_sales_container','Product wise details',productwise_wise_sum_of_sales,food_item_wise_outlet)
 })
   .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText);
+  $( '#Message' ).text( xhr.responseText);
+  $('#warning').show();
+  setTimeout(function(){
+$('#warning').hide();
+},3000)
   });
 })
 
@@ -396,7 +420,11 @@ var outlet_wise_food_item = _.chain(sales_live_data.sales_data)
  draw_chart('live_sales_container','Outlet wise details',outlet_wise_sum_of_sales,outlet_wise_food_item)
 })
   .fail(function(xhr,err,jquery) {
-    alert( xhr.responseText );
+   $( '#Message' ).text( xhr.responseText);
+  $('#warning').show();
+  setTimeout(function(){
+$('#warning').hide();
+},3000)
   });
 })
 
@@ -405,9 +433,6 @@ function sum(numbers) {
         return result + parseFloat(current);
     }, 0);
 }
-$('#btn_refresh').click(function(){
-    get_volume_plan_data();
-})
 
 function get_volume_plan_data()
 {

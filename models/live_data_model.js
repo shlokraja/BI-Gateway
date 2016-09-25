@@ -26,7 +26,7 @@ var get_live_packing_data = function (restaurant_id, firebase_url, callback) {
                 if (query_err) {
                     return callback(new Error(query_err, null));
                 }
-                if (total_live_count.rows) {
+                if (total_live_count.rows.length > 0) {
                     var total_quantity = 0;
                     _.map(total_live_count.rows, function (item) {
                         total_quantity += parseInt(item.total_quantity)
@@ -85,8 +85,11 @@ order by ses.sequence",
                 done();
                 if (query_err) {
                     return callback(new Error(query_err, null));
-                } else {
+                }
+                if (restaurant.rows.length > 0) {
                     return callback(null, restaurant.rows);
+                } else {
+                    return callback(new Error("No data found"));
                 }
             }
         );

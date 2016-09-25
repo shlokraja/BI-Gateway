@@ -120,7 +120,12 @@ router.get('/get_volume_plan', function (req, res) {
     request(url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             var info = JSON.parse(body)
-            res.send(info.data.volume_plan)
+            if (info.status != 'FAIL') {
+                res.send(info.data.volume_plan)
+            } else {
+                res.status(500).send('No data found ');
+            }
+
         }
         if (error) {
             res.status(500).send('Something failed ');
@@ -141,7 +146,7 @@ router.get('/get_live_sales_data', function (req, res) {
             }
         }
         if (error) {
-            res.status(500).send( 'Something failed ');
+            res.status(500).send('Something failed ');
         }
     })
 })
@@ -165,11 +170,15 @@ router.get('/live_packing_data', function (req, res) {
     var restaurant_id = req.query.restaurant_id;
     var cookie = req.cookies.login_details;
     if (cookie != undefined) {
-        var url = api_url + 'get_live_packing_data?restaurant_id=' + cookie.restaurant_id+'&firebase_url='+cookie.firebase_url;
+        var url = api_url + 'get_live_packing_data?restaurant_id=' + cookie.restaurant_id + '&firebase_url=' + cookie.firebase_url;
         request(url, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 var info = JSON.parse(body)
-                res.send(info.data.live_packing)
+                if (info.status != 'FAIL') {
+                    res.send(info.data.live_packing)
+                } else {
+                    res.status(500).send('No data found ');
+                }
             }
             if (error) {
                 res.status(500).send('Something failed ');
