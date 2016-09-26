@@ -145,4 +145,9 @@ a:hover, a:focus {
           background-color: transparent !important;
           color: #4a4b4a !important;
     }
+
+    .menu > li > a {
+    display: block;
+    padding: 0.7rem 0.7rem;  
+    line-height: 1; }
 /*# sourceMappingURL=app.css.map */

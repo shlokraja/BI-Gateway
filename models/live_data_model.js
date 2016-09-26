@@ -22,7 +22,8 @@ pg.connect(conString, function (err, client, done) {
             return callback(new Error(err, null));
         }
 
-var query_string="select ordered.restaurant_id,ordered.outlet_id,ordered.orderedqty,pckd.pkdquantity,owl.name as outletname from ( \
+var query_string="select ordered.restaurant_id,ordered.outlet_id,ordered.orderedqty,pckd.pkdquantity,\
+owl.name as outletname,r.name as restaurant_name,r.entity  from ( \
 with barcodes as (select x.barlist->>'restaurant_id' as restaurant_id,x.barlist->>'barcode' as barcode from( select json_array_elements($1) as barlist ) as x ) \
 select \
 coalesce(grpd.restaurant_id,batchdata.restaurant_id) as restaurant_id, \
@@ -43,7 +44,8 @@ right outer join ( select p.restaurant_id,p.outlet_id , sum(pm.quantity) as orde
 on p.id=pm.purchase_order_id where scheduled_delivery_time::date=current_date \
 group by p.restaurant_id,p.outlet_id)  as ordered \
 on pckd.restaurant_id=ordered.restaurant_id and pckd.outlet_id=ordered.outlet_id join outlet owl on ordered.outlet_id=owl.id \
-where (case when coalesce($2,ordered.restaurant_id)=$2 then $2 else ordered.restaurant_id end) = ordered.restaurant_id "
+where (case when coalesce($2,ordered.restaurant_id)=$2 then $2 else ordered.restaurant_id end) = ordered.restaurant_id \
+join restaurant r on ordered.restaurant_id=r.id "
 
 client.query(query_string,
             [JSON.stringify(response),restaurant_id],
